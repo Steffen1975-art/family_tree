@@ -16,15 +16,17 @@
             width: 100%;
             overflow-x: auto;
             padding: 20px;
+            background: linear-gradient(white 30%, #f8fafc 100%);
         }
         .tree {
             display: inline-flex;
+            white-space: nowrap;
             justify-content: center;
-            width: 100%;
         }
         .tree ul {
+            padding-top: 20px;
             position: relative;
-            padding-top: 30px;
+            transition: all 0.5s;
             display: flex;
             justify-content: center;
         }
@@ -32,75 +34,72 @@
             display: none;
         }
         .tree li {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0 10px;
-            position: relative;
+            float: left;
             text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+            transition: all 0.5s;
         }
-        /* Linien von oben zur Person */
-        .tree ul > li::before {
+        .tree li::before, .tree li::after {
             content: '';
             position: absolute;
             top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 30px;
-            background-color: #94a3b8;
+            right: 50%;
+            border-top: 2px solid #94a3b8;
+            width: 50%;
+            height: 20px;
         }
-        /* Horizontale Linie über den Kindern */
-        .tree ul::after {
-            content: '';
-            position: absolute;
-            top: 0;
+        .tree li::after {
+            right: auto;
             left: 50%;
-            width: calc(100% - 20px); /* Breite anpassen */
-            transform: translateX(-50%);
-            height: 2px;
-            background-color: #94a3b8;
+            border-left: 2px solid #94a3b8;
         }
-        .tree ul > li:first-child:last-child::after, .tree ul > li:first-child:last-child::before {
-             /* Keine horizontale Linie bei nur einem Kind */
+        .tree li:only-child::after, .tree li:only-child::before {
             display: none;
         }
-        .tree ul > li:first-child::after {
-            left: 50%;
-            width: 50%;
-            transform: translateX(0);
+        .tree li:only-child {
+            padding-top: 0;
         }
-        .tree ul > li:last-child::after {
-            left: 0;
-            width: 50%;
-            transform: translateX(0);
+        .tree li:first-child::before, .tree li:last-child::after {
+            border: 0 none;
         }
-        /* Linie von Person nach unten (nur wenn Kinder da sind) */
-        .person-node.has-children::after {
+        .tree li:last-child::before {
+            border-right: 2px solid #94a3b8;
+            border-radius: 0 5px 0 0;
+        }
+        .tree li:first-child::after {
+            border-radius: 5px 0 0 0;
+        }
+        .tree ul ul::before {
             content: '';
             position: absolute;
-            bottom: -30px;
+            top: 0;
             left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 30px;
-            background-color: #94a3b8;
+            border-left: 2px solid #94a3b8;
+            width: 0;
+            height: 20px;
         }
         .person-node {
-            background-color: white;
             border: 1px solid #cbd5e1;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: #1e293b;
+            background-color: #ffffff;
+            display: inline-block;
             border-radius: 8px;
-            padding: 8px 12px;
-            min-width: 170px;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            min-width: 180px;
+            transition: all 0.3s;
             cursor: pointer;
-            position: relative;
-            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
-        .person-node .name { font-weight: 600; }
+        .person-node:hover {
+            border-color: #0ea5e9;
+            transform: translateY(-2px);
+        }
+        .person-node .name { font-weight: 600; font-size: 1rem; }
         .person-node .lifespan { font-size: 0.8rem; color: #64748b; }
         .person-node .spouse { font-size: 0.8rem; color: #3b82f6; font-style: italic; }
-        .person-node:hover { border-color: #0ea5e9; }
         .toggle {
             font-size: 0.9rem;
             color: #3b82f6;
@@ -137,7 +136,7 @@
         <div class="tree">
             <ul>
                 <li>
-                    <div class="person-node has-children" onclick="showDetails('Johann Koller', 'geb. 1807, gest. 02.09.1881', 'Heirat 1831 mit Franziska geb. Müller (1807-1892).<br>4 Kinder.')">
+                    <div class="person-node" onclick="showDetails('Johann Koller', 'geb. 1807, gest. 02.09.1881', 'Heirat 1831 mit Franziska geb. Müller (1807-1892).<br>4 Kinder.')">
                         <div class="name">Johann Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[-]</span></div>
                         <div class="spouse">& Franziska Müller</div>
                     </div>
@@ -149,62 +148,64 @@
                             </div>
                         </li>
                         <li>
-                            <div class="person-node has-children" onclick="showDetails('Georg Koller', 'geb. 22.07.1843, gest. 21.07.1928', 'Heirat 07.01.1873 mit Therese geb. Röck (1850-1923).<br>11 Kinder.')">
+                            <div class="person-node" onclick="showDetails('Georg Koller', 'geb. 22.07.1843, gest. 21.07.1928', 'Heirat 07.01.1873 mit Therese geb. Röck (1850-1923).<br>11 Kinder.')">
                                 <div class="name">Georg Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
                                 <div class="spouse">& Therese Röck</div>
                             </div>
                             <ul class="collapsed">
-                                <li><div class="person-node has-children" onclick="showDetails('Andreas Koller', '1874-1959', 'Heirat mit Therese Stadler. 6 Kinder.')"><div class="name">Andreas Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1874-1959</div></div><ul class="collapsed"></ul></li>
-                                <li><div class="person-node has-children" onclick="showDetails('Georg Koller', '1876-1954', 'Heirat mit Centa. 2 Kinder.')"><div class="name">Georg Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1876-1954</div></div><ul class="collapsed"></ul></li>
-                                <li><div class="person-node has-children" onclick="showDetails('Franz Koller', '1878-1933', 'Heirat mit Anna Weikl. 14 Kinder.')"><div class="name">Franz Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1878-1933</div></div><ul class="collapsed"></ul></li>
-                                <li><div class="person-node has-children" onclick="showDetails('Baptist Koller', '1880-1963', 'Heirat mit Berta Wenzl. 1 Kind.')"><div class="name">Baptist Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1880-1963</div></div><ul class="collapsed"></ul></li>
-                                <li><div class="person-node has-children" onclick="showDetails('Tobias Koller', '1882-1965', '1. Ehe Cäzilia Weber (6 Kinder). 2. Ehe Maria Treml (10 Kinder).')"><div class="name">Tobias Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1882-1965</div></div><ul class="collapsed"></ul></li>
-                                <li><div class="person-node has-children" onclick="showDetails('Willibald Koller', '1883-1964', 'Heirat mit Maria Egner. 12 Kinder.')"><div class="name">Willibald Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1883-1964</div></div><ul class="collapsed"></ul></li>
-                                <li><div class="person-node has-children" onclick="showDetails('Ludwig Koller', '1886-1974', 'Heirat mit Amalie Brandl. 6 Kinder.')"><div class="name">Ludwig Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1886-1974</div></div><ul class="collapsed"></ul></li>
-                                <li><div class="person-node has-children" onclick="showDetails('Josef Koller', '1888-1958', 'Heirat mit Johanna Graßl. 8 Kinder.')"><div class="name">Josef Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1888-1958</div></div><ul class="collapsed"></ul></li>
+                                <!-- All 11 children of Georg and Therese -->
+                                <li><div class="person-node" onclick="showDetails('Andreas Koller', '1874-1959', 'Heirat mit Therese Stadler. 6 Kinder.')"><div class="name">Andreas Koller</div><div class="lifespan">1874-1959</div></div></li>
+                                <li><div class="person-node" onclick="showDetails('Georg Koller', '1876-1954', 'Heirat mit Centa. 2 Kinder.')"><div class="name">Georg Koller</div><div class="lifespan">1876-1954</div></div></li>
+                                <li><div class="person-node" onclick="showDetails('Franz Koller', '1878-1933', 'Heirat mit Anna Weikl. 14 Kinder.')"><div class="name">Franz Koller</div><div class="lifespan">1878-1933</div></div></li>
+                                <li><div class="person-node" onclick="showDetails('Baptist Koller', '1880-1963', 'Heirat mit Berta Wenzl. 1 Kind.')"><div class="name">Baptist Koller</div><div class="lifespan">1880-1963</div></div></li>
+                                <li><div class="person-node" onclick="showDetails('Tobias Koller', '1882-1965', '1. Ehe Cäzilia Weber (6 Kinder). 2. Ehe Maria Treml (10 Kinder).')"><div class="name">Tobias Koller</div><div class="lifespan">1882-1965</div></div></li>
+                                <li><div class="person-node" onclick="showDetails('Willibald Koller', '1883-1964', 'Heirat mit Maria Egner. 12 Kinder.')"><div class="name">Willibald Koller</div><div class="lifespan">1883-1964</div></div></li>
+                                <li><div class="person-node" onclick="showDetails('Ludwig Koller', '1886-1974', 'Heirat mit Amalie Brandl. 6 Kinder.')"><div class="name">Ludwig Koller</div><div class="lifespan">1886-1974</div></div></li>
+                                <li><div class="person-node" onclick="showDetails('Josef Koller', '1888-1958', 'Heirat mit Johanna Graßl. 8 Kinder.')"><div class="name">Josef Koller</div><div class="lifespan">1888-1958</div></div></li>
                                 <li><div class="person-node" onclick="showDetails('Max Koller', '1889-1890', 'Keine weiteren Daten.')"><div class="name">Max Koller</div><div class="lifespan">1889-1890</div></div></li>
-                                <li><div class="person-node has-children" onclick="showDetails('Therese Treml (geb. Koller)', '1890-1976', 'Heirat mit August Treml. 4 Kinder.')"><div class="name">Therese Treml <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1890-1976</div></div><ul class="collapsed"></ul></li>
+                                <li><div class="person-node" onclick="showDetails('Therese Treml (geb. Koller)', '1890-1976', 'Heirat mit August Treml. 4 Kinder.')"><div class="name">Therese Treml</div><div class="lifespan">1890-1976</div></div></li>
                                 <li>
-                                    <div class="person-node has-children" onclick="showDetails('Sylvester Koller', 'geb. 23.07.1893, gest. 24.03.1974', 'Heirat 06.03.1916 mit Mathilde geb. Hinkofer (1895-1974).<br>14 Kinder.')">
+                                    <div class="person-node" onclick="showDetails('Sylvester Koller', 'geb. 23.07.1893, gest. 24.03.1974', 'Heirat 06.03.1916 mit Mathilde geb. Hinkofer (1895-1974).<br>14 Kinder.')">
                                         <div class="name">Sylvester Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
                                         <div class="spouse">& Mathilde Hinkofer</div>
                                     </div>
                                     <ul class="collapsed">
+                                        <!-- Kinder von Sylvester und Mathilde -->
                                         <li><div class="person-node" onclick="showDetails('Sylvester Koller', '1917-1937', 'Vom Blitz getroffen.')"><div class="name">Sylvester Koller</div><div class="lifespan">1917-1937</div></div></li>
                                         <li>
-                                            <div class="person-node has-children" onclick="showDetails('Wolfgang Koller', '1918-1996', 'Heirat mit Rosina Adam. 6 Kinder.')">
+                                            <div class="person-node" onclick="showDetails('Wolfgang Koller', '1918-1996', 'Heirat mit Rosina Adam. 6 Kinder.')">
                                                 <div class="name">Wolfgang Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
                                                 <div class="lifespan">1918-1996</div>
                                             </div>
                                             <ul class="collapsed">
-                                                <li><div class="person-node has-children" onclick="showDetails('Renate Weikl', 'geb. 1944', 'Heirat mit Franz Xaver Weikl. 2 Kinder.')"><div class="name">Renate Weikl</div><div class="lifespan">geb. 1944</div></div></li>
-                                                <li><div class="person-node has-children" onclick="showDetails('Wolfgang Koller', 'geb. 1947', 'Heirat mit Marille Freimuth. 2 Kinder.')"><div class="name">Wolfgang Koller</div><div class="lifespan">geb. 1947</div></div></li>
-                                                <li><div class="person-node has-children" onclick="showDetails('Rupert Koller', 'geb. 1950', '2 Ehen. 3 Kinder.')"><div class="name">Rupert Koller</div><div class="lifespan">geb. 1950</div></div></li>
-                                                <li><div class="person-node has-children" onclick="showDetails('Willibald S. Koller', 'geb. 1951', 'Heirat mit Paula Schlagintweit. 2 Kinder.')"><div class="name">Willibald S. Koller</div><div class="lifespan">geb. 1951</div></div></li>
-                                                <li><div class="person-node has-children" onclick="showDetails('Karl J. Koller', 'geb. 1955', 'Heirat mit Isolde Geiger. 1 Kind.')"><div class="name">Karl J. Koller</div><div class="lifespan">geb. 1955</div></div></li>
-                                                <li><div class="person-node has-children" onclick="showDetails('Anton W. Koller', 'geb. 1959', 'Heirat mit Heidi Pöschl. 2 Kinder.')"><div class="name">Anton W. Koller</div><div class="lifespan">geb. 1959</div></div></li>
+                                                <li><div class="person-node" onclick="showDetails('Renate Weikl', 'geb. 1944', 'Heirat mit Franz Xaver Weikl. 2 Kinder.')"><div class="name">Renate Weikl</div><div class="lifespan">geb. 1944</div></div></li>
+                                                <li><div class="person-node" onclick="showDetails('Wolfgang Koller', 'geb. 1947', 'Heirat mit Marille Freimuth. 2 Kinder.')"><div class="name">Wolfgang Koller</div><div class="lifespan">geb. 1947</div></div></li>
+                                                <li><div class="person-node" onclick="showDetails('Rupert Koller', 'geb. 1950', '2 Ehen. 3 Kinder.')"><div class="name">Rupert Koller</div><div class="lifespan">geb. 1950</div></div></li>
+                                                <li><div class="person-node" onclick="showDetails('Willibald S. Koller', 'geb. 1951', 'Heirat mit Paula Schlagintweit. 2 Kinder.')"><div class="name">Willibald S. Koller</div><div class="lifespan">geb. 1951</div></div></li>
+                                                <li><div class="person-node" onclick="showDetails('Karl J. Koller', 'geb. 1955', 'Heirat mit Isolde Geiger. 1 Kind.')"><div class="name">Karl J. Koller</div><div class="lifespan">geb. 1955</div></div></li>
+                                                <li><div class="person-node" onclick="showDetails('Anton W. Koller', 'geb. 1959', 'Heirat mit Heidi Pöschl. 2 Kinder.')"><div class="name">Anton W. Koller</div><div class="lifespan">geb. 1959</div></div></li>
                                             </ul>
                                         </li>
                                         <li><div class="person-node" onclick="showDetails('Maria Koller', '1920-1920', 'Säugling.')"><div class="name">Maria Koller</div><div class="lifespan">1920-1920</div></div></li>
-                                        <li><div class="person-node has-children" onclick="showDetails('Alois Koller', '1922-1982', 'Partnerschaft mit Therese Brunner. Heirat mit Anna Drexler. 4 Kinder.')"><div class="name">Alois Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1922-1982</div></div><ul class="collapsed"></ul></li>
-                                        <li><div class="person-node has-children" onclick="showDetails('Siegfried Koller', '1923-1981', 'Heirat mit Katharina Hutterer. 5 Kinder.')"><div class="name">Siegfried Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1923-1981</div></div><ul class="collapsed"></ul></li>
-                                        <li><div class="person-node has-children" onclick="showDetails('Mathilde Wölfl', '1925-1980', 'Heirat mit Ernst Wölfl. 1 Kind.')"><div class="name">Mathilde Wölfl</div><div class="lifespan">1925-1980</div></div></li>
-                                        <li><div class="person-node has-children" onclick="showDetails('Friedrich Koller', '1927-1993', 'Heirat mit Rosa Tschada. 2 Kinder.')"><div class="name">Friedrich Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1927-1993</div></div><ul class="collapsed"></ul></li>
+                                        <li><div class="person-node" onclick="showDetails('Alois Koller', '1922-1982', 'Partnerschaft mit Therese Brunner. Heirat mit Anna Drexler. 4 Kinder.')"><div class="name">Alois Koller</div><div class="lifespan">1922-1982</div></div></li>
+                                        <li><div class="person-node" onclick="showDetails('Siegfried Koller', '1923-1981', 'Heirat mit Katharina Hutterer. 5 Kinder.')"><div class="name">Siegfried Koller</div><div class="lifespan">1923-1981</div></div></li>
+                                        <li><div class="person-node" onclick="showDetails('Mathilde Wölfl', '1925-1980', 'Heirat mit Ernst Wölfl. 1 Kind.')"><div class="name">Mathilde Wölfl</div><div class="lifespan">1925-1980</div></div></li>
+                                        <li><div class="person-node" onclick="showDetails('Friedrich Koller', '1927-1993', 'Heirat mit Rosa Tschada. 2 Kinder.')"><div class="name">Friedrich Koller</div><div class="lifespan">1927-1993</div></div></li>
                                         <li>
-                                            <div class="person-node has-children" onclick="showDetails('Maria Hubert (geb. Koller)', 'geb. 1928', 'Partnerschaft mit Franz Schreiner. Heirat mit Alfons Hubert. 4 Kinder.')">
+                                            <div class="person-node" onclick="showDetails('Maria Hubert (geb. Koller)', 'geb. 1928', 'Partnerschaft mit Franz Schreiner. Heirat mit Alfons Hubert. 4 Kinder.')">
                                                 <div class="name">Maria Hubert <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
                                                 <div class="lifespan">geb. 1928</div>
                                             </div>
                                             <ul class="collapsed">
                                                 <li>
-                                                    <div class="person-node has-children" onclick="showDetails('Sylvester Koller', 'geb. 1949', 'Heirat mit Christa Holl. 2 Kinder.')">
+                                                    <div class="person-node" onclick="showDetails('Sylvester Koller', 'geb. 1949', 'Heirat mit Christa Holl. 2 Kinder.')">
                                                         <div class="name">Sylvester Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
                                                         <div class="lifespan">geb. 1949</div>
                                                     </div>
                                                     <ul class="collapsed">
                                                         <li><div class="person-node" onclick="showDetails('Thomas Koller', '1973-2003', 'Keine weiteren Daten.')"><div class="name">Thomas Koller</div><div class="lifespan">1973-2003</div></div></li>
                                                         <li>
-                                                            <div class="person-node has-children" onclick="showDetails('Steffen Koller', 'geb. 1975', 'Heirat 03.06.2011 mit Mareike Maier. 1 Kind.')">
+                                                            <div class="person-node" onclick="showDetails('Steffen Koller', 'geb. 1975', 'Heirat 03.06.2011 mit Mareike Maier. 1 Kind.')">
                                                                 <div class="name">Steffen Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
                                                                 <div class="spouse">& Mareike Maier</div>
                                                             </div>
@@ -215,16 +216,16 @@
                                                     </ul>
                                                 </li>
                                                 <li><div class="person-node" onclick="showDetails('Anton Koller', '1952-1954', 'Sohn von Maria Koller.')"><div class="name">Anton Koller</div><div class="lifespan">1952-1954</div></div></li>
-                                                <li><div class="person-node has-children" onclick="showDetails('Antonia R. Bauer', 'geb. 1958', 'Tochter von Maria Hubert. Heirat mit Otmar Bauer. 3 Kinder.')"><div class="name">Antonia R. Bauer</div><div class="lifespan">geb. 1958</div></div></li>
-                                                <li><div class="person-node has-children" onclick="showDetails('Daniela M. Hubert', 'geb. 1958', 'Tochter von Maria Hubert. Heirat mit Ernst Holl. 3 Kinder.')"><div class="name">Daniela M. Holl</div><div class="lifespan">geb. 1958</div></div></li>
+                                                <li><div class="person-node" onclick="showDetails('Antonia R. Bauer', 'geb. 1958', 'Tochter von Maria Hubert. Heirat mit Otmar Bauer. 3 Kinder.')"><div class="name">Antonia R. Bauer</div><div class="lifespan">geb. 1958</div></div></li>
+                                                <li><div class="person-node" onclick="showDetails('Daniela M. Hubert', 'geb. 1958', 'Tochter von Maria Hubert. Heirat mit Ernst Holl. 3 Kinder.')"><div class="name">Daniela M. Holl</div><div class="lifespan">geb. 1958</div></div></li>
                                             </ul>
                                         </li>
                                         <li><div class="person-node" onclick="showDetails('Lieselotte A. Koller', '1929-1930', 'Säugling.')"><div class="name">Lieselotte Koller</div><div class="lifespan">1929-1930</div></div></li>
-                                        <li><div class="person-node has-children" onclick="showDetails('Regina Bartimäß', 'geb. 1933', 'Heirat mit Günther Bartimäß. 3 Kinder.')"><div class="name">Regina Bartimäß <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">geb. 1933</div></div><ul class="collapsed"></ul></li>
-                                        <li><div class="person-node has-children" onclick="showDetails('Therese Androwick', 'geb. 1934', 'Heirat mit William Androwick. 4 Kinder.')"><div class="name">Therese Androwick <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">geb. 1934</div></div><ul class="collapsed"></ul></li>
-                                        <li><div class="person-node has-children" onclick="showDetails('Rita Wölfl', 'geb. 1937', 'Heirat mit Ernst Wölfl. 3 Kinder.')"><div class="name">Rita Wölfl <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">geb. 1937</div></div><ul class="collapsed"></ul></li>
-                                        <li><div class="person-node has-children" onclick="showDetails('Jakob Koller', '1941-2013', 'Heirat mit Rosa Neumeier. 4 Kinder.')"><div class="name">Jakob Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">1941-2013</div></div><ul class="collapsed"></ul></li>
-                                        <li><div class="person-node has-children" onclick="showDetails('Franziska Rettenberger', 'geb. 1943', 'Heirat mit Josef Rettenberger. 2 Kinder.')"><div class="name">Franziska Rettenberger <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div><div class="lifespan">geb. 1943</div></div><ul class="collapsed"></ul></li>
+                                        <li><div class="person-node" onclick="showDetails('Regina Bartimäß', 'geb. 1933', 'Heirat mit Günther Bartimäß. 3 Kinder.')"><div class="name">Regina Bartimäß</div><div class="lifespan">geb. 1933</div></div></li>
+                                        <li><div class="person-node" onclick="showDetails('Therese Androwick', 'geb. 1934', 'Heirat mit William Androwick. 4 Kinder.')"><div class="name">Therese Androwick</div><div class="lifespan">geb. 1934</div></div></li>
+                                        <li><div class="person-node" onclick="showDetails('Rita Wölfl', 'geb. 1937', 'Heirat mit Ernst Wölfl. 3 Kinder.')"><div class="name">Rita Wölfl</div><div class="lifespan">geb. 1937</div></div></li>
+                                        <li><div class="person-node" onclick="showDetails('Jakob Koller', '1941-2013', 'Heirat mit Rosa Neumeier. 4 Kinder.')"><div class="name">Jakob Koller</div><div class="lifespan">1941-2013</div></div></li>
+                                        <li><div class="person-node" onclick="showDetails('Franziska Rettenberger', 'geb. 1943', 'Heirat mit Josef Rettenberger. 2 Kinder.')"><div class="name">Franziska Rettenberger</div><div class="lifespan">geb. 1943</div></div></li>
                                     </ul>
                                 </li>
                             </ul>
