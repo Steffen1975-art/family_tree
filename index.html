@@ -39,7 +39,12 @@
         .node circle {
             stroke: #0ea5e9;
             stroke-width: 2.5px;
-            transition: fill 0.3s ease, transform 0.3s ease;
+            transition: fill 0.3s ease, transform 0.3s ease, stroke 0.3s ease;
+        }
+        
+        .node.highlight circle {
+            stroke: #e11d48; /* Rosy-500 for highlight */
+            fill: #fecdd3;
         }
 
         .node text {
@@ -51,7 +56,6 @@
             stroke-linejoin: miter;
         }
         
-        /* Highlight node on hover */
         .node:hover circle {
             transform: scale(1.1);
         }
@@ -86,12 +90,38 @@
             white-space: nowrap;
         }
 
-        .controls select {
+        .controls select, .controls input {
             border-radius: 6px;
             border: 1px solid #d1d5db;
             padding: 0.25rem 0.5rem;
             width: 110px; /* Give select a fixed width */
         }
+        
+        /* Search specific styles */
+        #search-container {
+            position: relative;
+        }
+        #search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 30;
+        }
+        .search-result-item {
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+        .search-result-item:hover {
+            background-color: #f1f5f9;
+        }
+
 
         /* Tooltip for displaying details on hover */
         .tooltip {
@@ -505,6 +535,7 @@
 
         let layoutSettings = {};
         let maxVisibleDepth = 2; // Default visible depth
+        let flatData = []; // For easy searching
 
         function findMaxDepth(node) {
             let max = node.depth;
@@ -528,6 +559,15 @@
             const container = d3.select("#controls-container");
             container.html(''); // Clear
 
+            // --- Search Control ---
+            const searchGroup = container.append('div').attr('class', 'control-group').attr('id', 'search-container');
+            searchGroup.append('label').attr('for', 'search-input').text('Suche:');
+            searchGroup.append('input')
+                .attr('type', 'text')
+                .attr('id', 'search-input')
+                .attr('placeholder', 'Name eingeben...');
+            searchGroup.append('div').attr('id', 'search-results');
+            
             // --- Depth Filter Control ---
             const depthGroup = container.append('div').attr('class', 'control-group');
             depthGroup.append('label').attr('for', 'depth-switch').text('Ebenen anzeigen:');
@@ -567,17 +607,14 @@
         }
 
         function setTreeVisibility(node, depth) {
-            // Restore original children if they were hidden
             if (!node.children && node._children) {
                  node.children = node._children;
             }
             
             if (node.depth >= depth) {
-                // If node is at or beyond the desired depth, hide its children
-                if(node.children) node._children = node.children; // make sure to save them
+                if(node.children) node._children = node.children;
                 node.children = null;
             } else if (node._children) {
-                // If node is within depth, ensure children are visible and recurse
                 node.children = node._children;
                 node.children.forEach(c => setTreeVisibility(c, depth));
             }
@@ -589,17 +626,17 @@
         layoutSettings = getLayoutSettings();
 
         const root = d3.hierarchy(familyData, d => d.children);
+        flatData = root.descendants(); // Populate flat data for search
         root.x0 = width / 2;
         root.y0 = 0;
 
         root.descendants().forEach((d, i) => {
             d.id = i;
-            d._children = d.children; // Store all potential children
+            d._children = d.children;
         });
         
         setTreeVisibility(root, maxVisibleDepth);
 
-        // --- Helper functions for collision detection ---
         function getTreeExtent(node) {
             let minX = node.x;
             let maxX = node.x;
@@ -610,9 +647,8 @@
                     maxX = Math.max(maxX, childMaxX);
                 });
             }
-            // Add a buffer for the node text in vertical layouts
             if (node.parent && layoutSettings[node.parent.depth] === 'vertical') {
-                maxX += 100; // Approximate width of text
+                maxX += 100;
             }
             return [minX, maxX];
         }
@@ -627,12 +663,10 @@
         function update(source) {
             const duration = 500;
             
-            // 1. Get a base horizontal layout.
             const treeData = treeLayout(root);
             let nodes = treeData.descendants();
             let links = treeData.links();
 
-            // 2. Adjust for vertical layouts. This pass fixes the vertical overlap.
             nodes.forEach(parentNode => {
                 if (!parentNode.children || layoutSettings[parentNode.depth] !== 'vertical') {
                     return;
@@ -646,7 +680,6 @@
                 });
             });
 
-            // 3. Collision Resolution Pass. This fixes horizontal overlaps.
             root.eachAfter(node => {
                 if (!node.children || layoutSettings[node.depth] !== 'horizontal') {
                     return;
@@ -666,13 +699,12 @@
                 }
             });
 
-            // 4. Render nodes and links
             const node = g.selectAll("g.node").data(nodes, d => d.id);
 
             const nodeEnter = node.enter().append("g")
                 .attr("class", "node")
                 .attr("transform", d => `translate(${source.x0},${source.y0})`)
-                .on("click", click)
+                .on("click", (event, d) => click(d))
                 .on("mouseover", mouseover)
                 .on("mouseout", mouseout);
 
@@ -689,6 +721,8 @@
 
             nodeUpdate.select("circle").attr("r", 10)
                 .style("fill", d => d._children ? "#0ea5e9" : "#fff");
+            
+            nodeUpdate.classed("highlight", false); // Remove any previous highlight
 
             const nodeExit = node.exit().transition().duration(duration)
                 .attr("transform", d => `translate(${source.x},${source.y})`).remove();
@@ -725,7 +759,7 @@
             return `M${s.x},${s.y}V${(s.y + d.y) / 2}H${d.x}V${d.y}`;
         }
 
-        function click(event, d) {
+        function click(d) {
             if (d.children) {
                 d._children = d.children;
                 d.children = null;
@@ -757,6 +791,57 @@
             tooltip.transition().duration(500).style("opacity", 0);
         }
 
+        // --- Search Functionality ---
+        function showPathAndCenter(d) {
+            // Expand all ancestors to make the node visible
+            let current = d;
+            while(current.parent) {
+                current = current.parent;
+                if(current._children) {
+                    current.children = current._children;
+                }
+            }
+            update(d); // Redraw the tree with expanded nodes
+
+            // After redraw, center on the node
+            setTimeout(() => {
+                const transform = d3.zoomIdentity
+                    .translate(width / 2 - d.x * 0.6, height / 2 - d.y * 0.6)
+                    .scale(0.6);
+                
+                svg.transition().duration(750).call(zoom.transform, transform);
+
+                // Highlight the node
+                d3.selectAll('.node').filter(node_d => node_d.id === d.id).classed('highlight', true);
+
+            }, 550); // Wait for the update transition to finish
+        }
+
+        d3.select('#search-input').on('input', function(event) {
+            const value = this.value.toLowerCase();
+            const resultsContainer = d3.select('#search-results');
+            resultsContainer.html('');
+
+            if (value.length < 3) {
+                return;
+            }
+
+            const results = flatData.filter(d => d.data.name.toLowerCase().includes(value));
+            
+            results.forEach(d => {
+                resultsContainer.append('div')
+                    .attr('class', 'search-result-item')
+                    .text(d.data.name)
+                    .on('click', () => {
+                        showPathAndCenter(d);
+                        resultsContainer.html(''); // Clear results after click
+                        this.value = ''; // Clear input
+                    });
+            });
+        });
+
+
+        // --- Initial Draw ---
         update(root);
         
         const initialTransform = d3.zoomIdentity.translate(width / 2, 80).scale(0.6);
