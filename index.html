@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interaktiver Stammbaum - Familie Koller (Vollständige Daten)</title>
+    <title>Interaktiver Stammbaum - Familie Koller (Finale Version)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -26,8 +26,9 @@
         /* Styling for the connecting lines (links) */
         .link {
             fill: none;
-            stroke: #94a3b8;
+            stroke: #cbd5e1; /* Lighter default stroke */
             stroke-width: 2px;
+            transition: stroke 0.5s ease;
         }
 
         /* Styling for the person nodes (groups of circle and text) */
@@ -37,15 +38,29 @@
         }
 
         .node circle {
-            stroke: #0ea5e9;
+            stroke: #38bdf8; /* Lighter blue */
             stroke-width: 2.5px;
             transition: fill 0.3s ease, transform 0.3s ease, stroke 0.3s ease;
         }
         
+        /* --- HIGHLIGHTING STYLES --- */
         .node.highlight circle {
-            stroke: #e11d48; /* Rosy-500 for highlight */
-            fill: #fecdd3;
+            stroke: #f43f5e; /* Rose 500 for main selection */
+            fill: #ffe4e6;
+            stroke-width: 3px;
+            transform: scale(1.2);
         }
+        
+        .node.descendant-highlight circle {
+            stroke: #22c55e; /* Green 500 for descendants */
+            fill: #dcfce7;
+        }
+
+        .link.descendant-highlight {
+            stroke: #16a34a; /* Green 600 for descendant links */
+            stroke-width: 3px;
+        }
+
 
         .node text {
             font-weight: 500;
@@ -67,14 +82,47 @@
             right: 1rem;
             z-index: 20;
             background-color: white;
-            padding: 0.75rem;
             border-radius: 8px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem; /* Increased gap */
             max-height: 90vh;
             overflow-y: auto;
+        }
+        
+        .controls-header {
+            padding: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .controls-header svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            transition: transform 0.3s ease;
+        }
+
+        .controls-content {
+            padding: 0 0.75rem 0.75rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 1000px; /* High value for open state */
+            opacity: 1;
+            overflow: hidden;
+        }
+
+        .controls-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        .controls.collapsed .controls-header svg {
+            transform: rotate(-90deg);
         }
 
         .controls .control-group {
@@ -94,7 +142,21 @@
             border-radius: 6px;
             border: 1px solid #d1d5db;
             padding: 0.25rem 0.5rem;
-            width: 110px; /* Give select a fixed width */
+            width: 120px; /* Give select a bit more width */
+        }
+        
+        .controls button {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .controls button:hover {
+            background-color: #f3f4f6;
         }
         
         /* Search specific styles */
@@ -122,7 +184,6 @@
             background-color: #f1f5f9;
         }
 
-
         /* Tooltip for displaying details on hover */
         .tooltip {
             position: absolute;
@@ -132,55 +193,37 @@
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-            pointer-events: none; /* Allows mouse events to pass through */
+            pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s;
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
             max-width: 350px;
             z-index: 10;
         }
-
-        .tooltip .name {
-            font-weight: 700;
-            color: #0c4a6e; /* text-sky-900 */
-            font-size: 1rem;
-            margin-bottom: 8px;
-        }
-
-        .tooltip .details p {
-            margin: 4px 0;
-        }
-
-        .tooltip .details strong {
-            color: #334155; /* text-slate-700 */
-        }
-
+        .tooltip .name { font-weight: 700; color: #0c4a6e; font-size: 1rem; margin-bottom: 8px; }
+        .tooltip .details p { margin: 4px 0; }
+        .tooltip .details strong { color: #334155; }
     </style>
 </head>
 <body>
 
-    <!-- Header Section -->
     <div class="absolute top-0 left-0 p-4 md:p-6 z-10 w-full bg-gradient-to-b from-white via-white/80 to-transparent pointer-events-none">
         <h1 class="text-2xl md:text-3xl font-bold text-sky-800">Ahnengalerie der Familie Koller</h1>
         <p class="text-slate-600 mt-1 text-sm md:text-base">Knoten anklicken zum Erweitern/Reduzieren. Zoomen und Verschieben mit Maus/Touch.</p>
     </div>
 
-    <!-- UI Controls will be dynamically generated here -->
     <div id="controls-container" class="controls">
         <!-- JS will populate this -->
     </div>
 
-    <!-- Container for the D3.js SVG visualization -->
     <div id="tree-container"></div>
 
-    <!-- Tooltip element, hidden by default -->
     <div id="tooltip" class="tooltip">
         <div id="tooltip-name" class="name"></div>
         <div id="tooltip-details" class="details"></div>
     </div>
 
     <script>
-        // The hierarchical data for the family tree, parsed from the PDF document.
         const familyData = {
             "name": "Johann Koller", "details": { "geboren": "1807", "gestorben": "02.09.1881", "info": "Heirat 1831 mit Franziska geb. Müller (1807-1892)." },
             "children": [
@@ -287,7 +330,7 @@
                                 { "name": "Erna Koller", "details": { "geboren": "20.08.1931" } }
                             ]
                         },
-                        { "name": "Max Koller", "details": { "geboren": "20.04.1889", "gestorben": "11.03.1890" } },
+                        { "name": "Max Koller", "details": { "geboren": "20.04.1889", "gestorben": "11.03.1980" } },
                         { "name": "Therese Treml", "details": { "geboren": "12.08.1890", "gestorben": "27.08.1976", "info": "geb. Koller. Heirat 1920 mit August Treml (1896-1975)." }, "children": [
                             { "name": "Therese Koller", "details": { "geboren": "29.08.1919", "gestorben": "11.04.2012", "info": "Heirat 28.04.1947 mit Johann Rosenlehner (1912-1981)." } },
                             { "name": "August Treml", "details": { "geboren": "06.05.1921", "gestorben": "vermisst 22.12.1941" } },
@@ -513,7 +556,7 @@
         const width = window.innerWidth;
         const height = window.innerHeight;
         
-        const treeLayout = d3.tree().nodeSize([150, 220]); // Increased spacing
+        const treeLayout = d3.tree().nodeSize([160, 220]); // Increased horizontal node spacing
 
         const svg = d3.select("#tree-container").append("svg")
             .attr("width", width)
@@ -533,9 +576,11 @@
 
         svg.call(zoom);
 
-        let layoutSettings = {};
-        let maxVisibleDepth = 2; // Default visible depth
-        let flatData = []; // For easy searching
+        let switchToVerticalAtDepth = 99; // Default to all horizontal
+        let maxVisibleDepth = 1; // Default visible depth set to 1
+        let flatData = [];
+        let selectedNode = null; // To keep track of the selected node
+        let initialTransform; // To store the initial transform
 
         function findMaxDepth(node) {
             let max = node.depth;
@@ -547,20 +592,24 @@
             return max;
         }
 
-        function getLayoutSettings() {
-            const settings = {};
-            d3.selectAll('.level-layout-switch').each(function() {
-                settings[this.dataset.level] = this.value;
-            });
-            return settings;
-        }
-
         function createLayoutControls(maxDepth) {
             const container = d3.select("#controls-container");
             container.html(''); // Clear
 
+            const header = container.append('div').attr('class', 'controls-header');
+            header.append('span').text('Filter & Steuerung');
+            header.append('svg').attr('viewBox', '0 0 20 20').attr('fill', 'currentColor')
+              .html(`<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />`);
+
+            const content = container.append('div').attr('class', 'controls-content');
+
+            header.on('click', () => {
+                container.classed('collapsed', !container.classed('collapsed'));
+                content.classed('collapsed', !content.classed('collapsed'));
+            });
+            
             // --- Search Control ---
-            const searchGroup = container.append('div').attr('class', 'control-group').attr('id', 'search-container');
+            const searchGroup = content.append('div').attr('class', 'control-group').attr('id', 'search-container');
             searchGroup.append('label').attr('for', 'search-input').text('Suche:');
             searchGroup.append('input')
                 .attr('type', 'text')
@@ -569,7 +618,7 @@
             searchGroup.append('div').attr('id', 'search-results');
             
             // --- Depth Filter Control ---
-            const depthGroup = container.append('div').attr('class', 'control-group');
+            const depthGroup = content.append('div').attr('class', 'control-group');
             depthGroup.append('label').attr('for', 'depth-switch').text('Ebenen anzeigen:');
             const depthSelect = depthGroup.append('select')
                 .attr('id', 'depth-switch')
@@ -584,26 +633,25 @@
                     .property('selected', i === maxVisibleDepth);
             }
 
-            // --- Per-Level Layout Controls ---
-            for (let i = 0; i < maxDepth; i++) {
-                const controlGroup = container.append('div').attr('class', 'control-group');
-                controlGroup.append('label').attr('for', `level-switch-${i}`).text(`Layout Ebene ${i+1}:`);
-                controlGroup.append('select')
-                    .attr('id', `level-switch-${i}`)
-                    .attr('data-level', i)
-                    .attr('class', 'level-layout-switch')
-                    .on('change', function() {
-                        layoutSettings = getLayoutSettings();
-                        update(root);
-                    })
-                    .selectAll('option')
-                    .data(['horizontal', 'vertical'])
-                    .enter()
-                    .append('option')
-                    .attr('value', d => d)
-                    .property("selected", d => d === 'horizontal')
-                    .text(d => d === 'horizontal' ? 'Horizontal' : 'Vertikal');
+            // --- Simplified Layout Control ---
+            const layoutGroup = content.append('div').attr('class', 'control-group');
+            layoutGroup.append('label').attr('for', 'layout-switch').text('Vertikal ab Ebene:');
+            const layoutSelect = layoutGroup.append('select')
+                .attr('id', 'layout-switch')
+                .on('change', function() {
+                    switchToVerticalAtDepth = parseInt(this.value);
+                    update(root);
+                });
+
+            for (let i = 2; i <= maxDepth + 1; i++) {
+                layoutSelect.append('option').attr('value', i).text(i);
             }
+            layoutSelect.append('option').attr('value', 99).text('Nie').property('selected', true);
+
+            // --- Action Buttons ---
+            const buttonGroup = content.append('div').attr('class', 'control-group mt-2 flex-col space-y-2');
+            buttonGroup.append('button').attr('id', 'reset-button').text('Ansicht zurücksetzen');
+            buttonGroup.append('button').attr('id', 'zoom-button').text('Auf Auswahl zoomen');
         }
 
         function setTreeVisibility(node, depth) {
@@ -623,16 +671,25 @@
         const tempRoot = d3.hierarchy(familyData);
         const maxDataDepth = findMaxDepth(tempRoot);
         createLayoutControls(maxDataDepth);
-        layoutSettings = getLayoutSettings();
 
         const root = d3.hierarchy(familyData, d => d.children);
-        flatData = root.descendants(); // Populate flat data for search
-        root.x0 = width / 2;
-        root.y0 = 0;
-
+        
         root.descendants().forEach((d, i) => {
             d.id = i;
             d._children = d.children;
+        });
+
+        // --- Enhanced flat data for search ---
+        flatData = root.descendants();
+        flatData.forEach(d => {
+            let spouseName = '';
+            const info = d.data.details?.info;
+            if (info) {
+                const match = info.match(/Heirat.*?mit\s(.*?)(?:\s\(|\.|$)/);
+                if (match && match[1]) {
+                    d.spouseName = match[1].trim();
+                }
+            }
         });
         
         setTreeVisibility(root, maxVisibleDepth);
@@ -647,8 +704,8 @@
                     maxX = Math.max(maxX, childMaxX);
                 });
             }
-            if (node.parent && layoutSettings[node.parent.depth] === 'vertical') {
-                maxX += 100;
+            if (node.depth >= switchToVerticalAtDepth) {
+                maxX += 100; // Approximate width of text
             }
             return [minX, maxX];
         }
@@ -660,6 +717,21 @@
             }
         }
 
+        function getSubtreeVerticalSize(node) {
+            if (!node.children) {
+                return 0;
+            }
+            const verticalNodeSpacing = { yGap: 50 };
+            let totalHeight = node.children.length * verticalNodeSpacing.yGap;
+
+            node.children.forEach(child => {
+                if (child.children && child.depth >= switchToVerticalAtDepth) {
+                    totalHeight += getSubtreeVerticalSize(child);
+                }
+            });
+            return totalHeight;
+        }
+
         function update(source) {
             const duration = 500;
             
@@ -667,24 +739,37 @@
             let nodes = treeData.descendants();
             let links = treeData.links();
 
-            nodes.forEach(parentNode => {
-                if (!parentNode.children || layoutSettings[parentNode.depth] !== 'vertical') {
-                    return;
+            root.eachBefore(node => {
+                if (node.depth >= switchToVerticalAtDepth) {
+                    if (node.parent) {
+                        const parent = node.parent;
+                        const siblings = parent.children;
+                        const nodeIndex = siblings.indexOf(node);
+                        const verticalNodeSpacing = { yGap: 50 };
+
+                        node.x = parent.x + 30;
+                        
+                        if (nodeIndex > 0) {
+                            const prevSibling = siblings[nodeIndex - 1];
+                            let requiredSpace = getSubtreeVerticalSize(prevSibling);
+                            node.y = prevSibling.y + verticalNodeSpacing.yGap + requiredSpace;
+                        } else {
+                            node.y = parent.y + verticalNodeSpacing.yGap;
+                        }
+                    }
                 }
-                const verticalNodeSpacing = { indent: 30, yGap: 50 };
-                let lastY = parentNode.y;
-                parentNode.children.forEach(childNode => {
-                    childNode.x = parentNode.x + verticalNodeSpacing.indent;
-                    lastY += verticalNodeSpacing.yGap;
-                    childNode.y = lastY;
-                });
             });
 
             root.eachAfter(node => {
-                if (!node.children || layoutSettings[node.depth] !== 'horizontal') {
+                if (!node.children || node.depth >= switchToVerticalAtDepth - 1) {
                     return;
                 }
-                const horizontalGap = 40;
+                
+                if(node.children.length > 0) {
+                    node.x = (node.children[0].x + node.children[node.children.length - 1].x) / 2;
+                }
+
+                const horizontalGap = 60; // Increased gap
                 for (let i = 1; i < node.children.length; i++) {
                     const leftSubtree = node.children[i - 1];
                     const rightSubtree = node.children[i];
@@ -715,15 +800,13 @@
             nodeUpdate.transition().duration(duration).attr("transform", d => `translate(${d.x},${d.y})`);
             
             nodeUpdate.select("text").transition().duration(duration)
-                .attr("x", d => (!d.parent || layoutSettings[d.parent.depth] === 'horizontal') ? 0 : 15)
-                .attr("y", d => (!d.parent || layoutSettings[d.parent.depth] === 'horizontal') ? 30 : 5)
-                .attr("text-anchor", d => (!d.parent || layoutSettings[d.parent.depth] === 'horizontal') ? "middle" : "start");
+                .attr("x", d => (d.depth < switchToVerticalAtDepth) ? 0 : 15)
+                .attr("y", d => (d.depth < switchToVerticalAtDepth) ? 30 : 5)
+                .attr("text-anchor", d => (d.depth < switchToVerticalAtDepth) ? "middle" : "start");
 
             nodeUpdate.select("circle").attr("r", 10)
                 .style("fill", d => d._children ? "#0ea5e9" : "#fff");
             
-            nodeUpdate.classed("highlight", false); // Remove any previous highlight
-
             const nodeExit = node.exit().transition().duration(duration)
                 .attr("transform", d => `translate(${source.x},${source.y})`).remove();
             nodeExit.select("circle").attr("r", 1e-6);
@@ -734,37 +817,63 @@
             const linkEnter = link.enter().insert("path", "g")
                 .attr("class", "link")
                 .attr("d", d => {
-                    const o = { x: source.x0, y: source.y0, parent: source.parent };
-                    return elbow(o, o);
+                    const o = { x: source.x0, y: source.y0 };
+                    return elbow(o, o, d.target.depth);
                 });
 
             linkEnter.merge(link).transition().duration(duration)
-                .attr("d", d => elbow(d.source, d.target));
+                .attr("d", d => elbow(d.source, d.target, d.target.depth));
 
             link.exit().transition().duration(duration)
                 .attr("d", d => {
-                    const o = { x: source.x, y: source.y, parent: source.parent };
-                    return elbow(o, o);
+                    const o = { x: source.x, y: source.y };
+                    return elbow(o, o, d.target.depth);
                 }).remove();
+            
+            highlightBranch(selectedNode);
 
             nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
         }
 
-        function elbow(s, d) {
-            if (!d.parent) return `M${s.x},${s.y}L${d.x},${d.y}`;
-            const parentLayout = layoutSettings[d.parent.depth];
-            if (parentLayout === 'vertical') {
+        function elbow(s, d, depth) {
+            if (depth >= switchToVerticalAtDepth) {
                 return `M${s.x},${s.y} L${s.x},${d.y} L${d.x},${d.y}`;
             }
             return `M${s.x},${s.y}V${(s.y + d.y) / 2}H${d.x}V${d.y}`;
         }
+        
+        function highlightBranch(d) {
+            d3.selectAll('.node').classed('highlight descendant-highlight', false);
+            d3.selectAll('.link').classed('descendant-highlight', false);
+
+            if (!d) return;
+
+            const descendantNodes = d.descendants();
+            const descendantIds = new Set(descendantNodes.map(n => n.id));
+
+            d3.selectAll('.node').each(function(node_d) {
+                const isDescendant = descendantIds.has(node_d.id);
+                d3.select(this).classed('highlight', node_d.id === d.id);
+                d3.select(this).classed('descendant-highlight', isDescendant && node_d.id !== d.id);
+            });
+
+            d3.selectAll('.link').each(function(link_d) {
+                const isDescendantLink = descendantIds.has(link_d.source.id) && descendantIds.has(link_d.target.id);
+                d3.select(this).classed('descendant-highlight', isDescendantLink);
+            });
+        }
 
         function click(d) {
+            selectedNode = d; 
+
             if (d.children) {
                 d._children = d.children;
                 d.children = null;
+                highlightBranch(d.parent); 
+                selectedNode = d.parent; 
             } else {
                 d.children = d._children;
+                highlightBranch(d);
             }
             update(d);
         }
@@ -791,9 +900,8 @@
             tooltip.transition().duration(500).style("opacity", 0);
         }
 
-        // --- Search Functionality ---
         function showPathAndCenter(d) {
-            // Expand all ancestors to make the node visible
+            selectedNode = d;
             let current = d;
             while(current.parent) {
                 current = current.parent;
@@ -801,20 +909,16 @@
                     current.children = current._children;
                 }
             }
-            update(d); // Redraw the tree with expanded nodes
+            update(d);
 
-            // After redraw, center on the node
             setTimeout(() => {
                 const transform = d3.zoomIdentity
-                    .translate(width / 2 - d.x * 0.6, height / 2 - d.y * 0.6)
-                    .scale(0.6);
+                    .translate(width / 2 - d.x * 0.8, height / 2 - d.y * 0.8)
+                    .scale(0.8);
                 
                 svg.transition().duration(750).call(zoom.transform, transform);
-
-                // Highlight the node
-                d3.selectAll('.node').filter(node_d => node_d.id === d.id).classed('highlight', true);
-
-            }, 550); // Wait for the update transition to finish
+                highlightBranch(d);
+            }, 550);
         }
 
         d3.select('#search-input').on('input', function(event) {
@@ -822,11 +926,12 @@
             const resultsContainer = d3.select('#search-results');
             resultsContainer.html('');
 
-            if (value.length < 3) {
-                return;
-            }
+            if (value.length < 3) return;
 
-            const results = flatData.filter(d => d.data.name.toLowerCase().includes(value));
+            const results = flatData.filter(d => 
+                d.data.name.toLowerCase().includes(value) || 
+                (d.spouseName && d.spouseName.toLowerCase().includes(value))
+            );
             
             results.forEach(d => {
                 resultsContainer.append('div')
@@ -834,18 +939,39 @@
                     .text(d.data.name)
                     .on('click', () => {
                         showPathAndCenter(d);
-                        resultsContainer.html(''); // Clear results after click
-                        this.value = ''; // Clear input
+                        resultsContainer.html('');
+                        this.value = '';
                     });
             });
         });
 
-
         // --- Initial Draw ---
+        root.x0 = width / 2;
+        root.y0 = 0;
         update(root);
         
-        const initialTransform = d3.zoomIdentity.translate(width / 2, 80).scale(0.6);
+        initialTransform = d3.zoomIdentity.translate(width / 2, 80).scale(0.8);
         svg.call(zoom.transform, initialTransform);
+
+        // --- Button Event Listeners ---
+        d3.select('#reset-button').on('click', () => {
+            maxVisibleDepth = 1;
+            d3.select('#depth-switch').property('value', 1);
+            setTreeVisibility(root, 1);
+            selectedNode = null;
+            highlightBranch(null);
+            update(root);
+            svg.transition().duration(750).call(zoom.transform, initialTransform);
+        });
+
+        d3.select('#zoom-button').on('click', () => {
+            if (selectedNode) {
+                const transform = d3.zoomIdentity
+                    .translate(width / 2 - selectedNode.x * 0.8, height / 2 - selectedNode.y * 0.8)
+                    .scale(0.8);
+                svg.transition().duration(750).call(zoom.transform, transform);
+            }
+        });
 
         window.addEventListener('resize', () => {
             svg.attr('width', window.innerWidth).attr('height', window.innerHeight);
