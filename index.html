@@ -3,315 +3,516 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interaktiver Stammbaum - Familie Koller</title>
+    <title>Interaktiver Stammbaum - Familie Koller (Dynamisches Layout)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        /* General body styling */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             color: #1e293b;
-        }
-        .tree-container {
-            width: 100%;
-            overflow-x: auto;
-            padding: 20px;
-            background: linear-gradient(white 30%, #f8fafc 100%);
-            /* Firefox Scrollbar */
-            scrollbar-width: auto;
-            scrollbar-color: #0ea5e9 #e5e7eb;
-        }
-        /* Webkit (Chrome, Safari, Edge) Scrollbar */
-        .tree-container::-webkit-scrollbar {
-            height: 16px;
-        }
-        .tree-container::-webkit-scrollbar-track {
-            background: #e5e7eb;
-            border-radius: 8px;
-        }
-        .tree-container::-webkit-scrollbar-thumb {
-            background-color: #0ea5e9;
-            border-radius: 8px;
-            border: 4px solid transparent;
-            background-clip: content-box;
-        }
-        .tree-container::-webkit-scrollbar-thumb:hover {
-            background-color: #0284c7;
+            margin: 0;
+            overflow: hidden; /* Prevent body scrollbars */
         }
 
-        .tree {
-            display: inline-flex;
-            white-space: nowrap;
-            justify-content: center;
+        /* SVG container styling */
+        #tree-container {
+            width: 100vw;
+            height: 100vh;
         }
-        .tree ul {
-            padding-top: 20px;
-            position: relative;
-            transition: all 0.5s;
-            display: flex;
-            justify-content: center;
+
+        /* Styling for the connecting lines (links) */
+        .link {
+            fill: none;
+            stroke: #94a3b8;
+            stroke-width: 2px;
         }
-        .tree ul.collapsed {
-            display: none;
+
+        /* Styling for the person nodes (groups of circle and text) */
+        .node {
+            cursor: pointer;
+            font-size: 14px;
         }
-        .tree li {
-            float: left;
-            text-align: center;
-            list-style-type: none;
-            position: relative;
-            padding: 20px 5px 0 5px;
-            transition: all 0.5s;
+
+        .node circle {
+            stroke: #0ea5e9;
+            stroke-width: 2.5px;
+            transition: fill 0.3s ease, transform 0.3s ease;
         }
-        .tree li::before, .tree li::after {
-            content: '';
+
+        .node text {
+            font-weight: 500;
+            paint-order: stroke;
+            stroke: #f8fafc;
+            stroke-width: 3.5px;
+            stroke-linecap: butt;
+            stroke-linejoin: miter;
+        }
+        
+        /* Highlight node on hover */
+        .node:hover circle {
+            transform: scale(1.1);
+        }
+        
+        /* Controls for layout switching */
+        .controls {
             position: absolute;
-            top: 0;
-            right: 50%;
-            border-top: 2px solid #94a3b8;
-            width: 50%;
-            height: 20px;
-        }
-        .tree li::after {
-            right: auto;
-            left: 50%;
-            border-left: 2px solid #94a3b8;
-        }
-        .tree li:only-child::after, .tree li:only-child::before {
-            display: none;
-        }
-        .tree li:only-child {
-            padding-top: 0;
-        }
-        .tree li:first-child::before, .tree li:last-child::after {
-            border: 0 none;
-        }
-        .tree li:last-child::before {
-            border-right: 2px solid #94a3b8;
-            border-radius: 0 5px 0 0;
-        }
-        .tree li:first-child::after {
-            border-radius: 5px 0 0 0;
-        }
-        .tree ul ul::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            border-left: 2px solid #94a3b8;
-            width: 0;
-            height: 20px;
-        }
-        .person-node {
-            border: 1px solid #cbd5e1;
-            padding: 10px 15px;
-            text-decoration: none;
-            color: #1e293b;
-            background-color: #ffffff;
-            display: inline-block;
+            top: 1rem;
+            right: 1rem;
+            z-index: 20;
+            background-color: white;
+            padding: 0.75rem;
             border-radius: 8px;
-            min-width: 180px;
-            transition: all 0.3s;
-            cursor: pointer;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
-        .person-node:hover {
-            border-color: #0ea5e9;
-            transform: translateY(-2px);
+
+        .controls .control-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .person-node .name { font-weight: 600; font-size: 1rem; }
-        .person-node .lifespan { font-size: 0.8rem; color: #64748b; }
-        .person-node .spouse { font-size: 0.8rem; color: #3b82f6; font-style: italic; }
-        .toggle {
-            font-size: 0.9rem;
-            color: #3b82f6;
-            cursor: pointer;
-            font-weight: bold;
-            padding: 2px 4px;
-            border-radius: 4px;
-            margin-left: 5px;
+
+        .controls label {
+            margin-right: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
-        .toggle:hover { background-color: #e0f2fe; }
-        .modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
-            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);
-            padding-top: 60px;
+
+        .controls select {
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            padding: 0.25rem 0.5rem;
+            width: 110px; /* Give select a fixed width */
         }
-        .modal-content {
-            background-color: #fefefe; margin: 5% auto; padding: 20px;
-            border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px; position: relative;
+
+        /* Tooltip for displaying details on hover */
+        .tooltip {
+            position: absolute;
+            text-align: left;
+            padding: 12px;
+            font-size: 0.875rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            pointer-events: none; /* Allows mouse events to pass through */
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            max-width: 300px;
+            z-index: 10;
         }
-        .close {
-            color: #aaa; position: absolute; top: 10px; right: 25px;
-            font-size: 35px; font-weight: bold; cursor: pointer;
+
+        .tooltip .name {
+            font-weight: 700;
+            color: #0c4a6e; /* text-sky-900 */
+            font-size: 1rem;
+            margin-bottom: 8px;
         }
+
+        .tooltip .details p {
+            margin: 4px 0;
+        }
+
+        .tooltip .details strong {
+            color: #334155; /* text-slate-700 */
+        }
+
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
 
-    <div class="text-center mb-12">
-        <h1 class="text-4xl md:text-5xl font-bold text-sky-700">Ahnengalerie der Familie Koller</h1>
-        <p class="text-slate-600 mt-2">Klicken Sie auf eine Person für Details oder auf [+], um einen Zweig zu erweitern.</p>
+    <!-- Header Section -->
+    <div class="absolute top-0 left-0 p-4 md:p-6 z-10 w-full bg-gradient-to-b from-white via-white/80 to-transparent pointer-events-none">
+        <h1 class="text-2xl md:text-3xl font-bold text-sky-800">Ahnengalerie der Familie Koller</h1>
+        <p class="text-slate-600 mt-1 text-sm md:text-base">Knoten anklicken zum Erweitern/Reduzieren. Zoomen und Verschieben mit Maus/Touch.</p>
     </div>
 
-    <div class="tree-container">
-        <div class="tree">
-            <ul>
-                <li>
-                    <div class="person-node" onclick="showDetails('Johann Koller', 'geb. 1807, gest. 02.09.1881', 'Heirat 1831 mit Franziska geb. Müller (1807-1892).<br>4 Kinder.')">
-                        <div class="name">Johann Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[-]</span></div>
-                        <div class="spouse">& Franziska Müller</div>
-                    </div>
-                    <ul>
-                        <li>
-                            <div class="person-node" onclick="showDetails('Xaver Koller', 'geb. 24.11.1832, gest. 13.04.1919', 'Keine weiteren Daten.')">
-                                <div class="name">Xaver Koller</div>
-                                <div class="lifespan">1832 - 1919</div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="person-node" onclick="showDetails('Georg Koller', 'geb. 22.07.1843, gest. 21.07.1928', 'Heirat 07.01.1873 mit Therese geb. Röck (1850-1923).<br>11 Kinder.')">
-                                <div class="name">Georg Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
-                                <div class="spouse">& Therese Röck</div>
-                            </div>
-                            <ul class="collapsed">
-                                <!-- All 11 children of Georg and Therese -->
-                                <li><div class="person-node" onclick="showDetails('Andreas Koller', '1874-1959', 'Heirat mit Therese Stadler. 6 Kinder.')"><div class="name">Andreas Koller</div><div class="lifespan">1874-1959</div></div></li>
-                                <li><div class="person-node" onclick="showDetails('Georg Koller', '1876-1954', 'Heirat mit Centa. 2 Kinder.')"><div class="name">Georg Koller</div><div class="lifespan">1876-1954</div></div></li>
-                                <li><div class="person-node" onclick="showDetails('Franz Koller', '1878-1933', 'Heirat mit Anna Weikl. 14 Kinder.')"><div class="name">Franz Koller</div><div class="lifespan">1878-1933</div></div></li>
-                                <li><div class="person-node" onclick="showDetails('Baptist Koller', '1880-1963', 'Heirat mit Berta Wenzl. 1 Kind.')"><div class="name">Baptist Koller</div><div class="lifespan">1880-1963</div></div></li>
-                                <li><div class="person-node" onclick="showDetails('Tobias Koller', '1882-1965', '1. Ehe Cäzilia Weber (6 Kinder). 2. Ehe Maria Treml (10 Kinder).')"><div class="name">Tobias Koller</div><div class="lifespan">1882-1965</div></div></li>
-                                <li><div class="person-node" onclick="showDetails('Willibald Koller', '1883-1964', 'Heirat mit Maria Egner. 12 Kinder.')"><div class="name">Willibald Koller</div><div class="lifespan">1883-1964</div></div></li>
-                                <li><div class="person-node" onclick="showDetails('Ludwig Koller', '1886-1974', 'Heirat mit Amalie Brandl. 6 Kinder.')"><div class="name">Ludwig Koller</div><div class="lifespan">1886-1974</div></div></li>
-                                <li><div class="person-node" onclick="showDetails('Josef Koller', '1888-1958', 'Heirat mit Johanna Graßl. 8 Kinder.')"><div class="name">Josef Koller</div><div class="lifespan">1888-1958</div></div></li>
-                                <li><div class="person-node" onclick="showDetails('Max Koller', '1889-1890', 'Keine weiteren Daten.')"><div class="name">Max Koller</div><div class="lifespan">1889-1890</div></div></li>
-                                <li><div class="person-node" onclick="showDetails('Therese Treml (geb. Koller)', '1890-1976', 'Heirat mit August Treml. 4 Kinder.')"><div class="name">Therese Treml</div><div class="lifespan">1890-1976</div></div></li>
-                                <li>
-                                    <div class="person-node" onclick="showDetails('Sylvester Koller', 'geb. 23.07.1893, gest. 24.03.1974', 'Heirat 06.03.1916 mit Mathilde geb. Hinkofer (1895-1974).<br>14 Kinder.')">
-                                        <div class="name">Sylvester Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
-                                        <div class="spouse">& Mathilde Hinkofer</div>
-                                    </div>
-                                    <ul class="collapsed">
-                                        <!-- Kinder von Sylvester und Mathilde -->
-                                        <li><div class="person-node" onclick="showDetails('Sylvester Koller', '1917-1937', 'Vom Blitz getroffen.')"><div class="name">Sylvester Koller</div><div class="lifespan">1917-1937</div></div></li>
-                                        <li>
-                                            <div class="person-node" onclick="showDetails('Wolfgang Koller', '1918-1996', 'Heirat mit Rosina Adam. 6 Kinder.')">
-                                                <div class="name">Wolfgang Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
-                                                <div class="lifespan">1918-1996</div>
-                                            </div>
-                                            <ul class="collapsed">
-                                                <li><div class="person-node" onclick="showDetails('Renate Weikl', 'geb. 1944', 'Heirat mit Franz Xaver Weikl. 2 Kinder.')"><div class="name">Renate Weikl</div><div class="lifespan">geb. 1944</div></div></li>
-                                                <li><div class="person-node" onclick="showDetails('Wolfgang Koller', 'geb. 1947', 'Heirat mit Marille Freimuth. 2 Kinder.')"><div class="name">Wolfgang Koller</div><div class="lifespan">geb. 1947</div></div></li>
-                                                <li><div class="person-node" onclick="showDetails('Rupert Koller', 'geb. 1950', '2 Ehen. 3 Kinder.')"><div class="name">Rupert Koller</div><div class="lifespan">geb. 1950</div></div></li>
-                                                <li><div class="person-node" onclick="showDetails('Willibald S. Koller', 'geb. 1951', 'Heirat mit Paula Schlagintweit. 2 Kinder.')"><div class="name">Willibald S. Koller</div><div class="lifespan">geb. 1951</div></div></li>
-                                                <li><div class="person-node" onclick="showDetails('Karl J. Koller', 'geb. 1955', 'Heirat mit Isolde Geiger. 1 Kind.')"><div class="name">Karl J. Koller</div><div class="lifespan">geb. 1955</div></div></li>
-                                                <li><div class="person-node" onclick="showDetails('Anton W. Koller', 'geb. 1959', 'Heirat mit Heidi Pöschl. 2 Kinder.')"><div class="name">Anton W. Koller</div><div class="lifespan">geb. 1959</div></div></li>
-                                            </ul>
-                                        </li>
-                                        <li><div class="person-node" onclick="showDetails('Maria Koller', '1920-1920', 'Säugling.')"><div class="name">Maria Koller</div><div class="lifespan">1920-1920</div></div></li>
-                                        <li><div class="person-node" onclick="showDetails('Alois Koller', '1922-1982', 'Partnerschaft mit Therese Brunner. Heirat mit Anna Drexler. 4 Kinder.')"><div class="name">Alois Koller</div><div class="lifespan">1922-1982</div></div></li>
-                                        <li><div class="person-node" onclick="showDetails('Siegfried Koller', '1923-1981', 'Heirat mit Katharina Hutterer. 5 Kinder.')"><div class="name">Siegfried Koller</div><div class="lifespan">1923-1981</div></div></li>
-                                        <li><div class="person-node" onclick="showDetails('Mathilde Wölfl', '1925-1980', 'Heirat mit Ernst Wölfl. 1 Kind.')"><div class="name">Mathilde Wölfl</div><div class="lifespan">1925-1980</div></div></li>
-                                        <li><div class="person-node" onclick="showDetails('Friedrich Koller', '1927-1993', 'Heirat mit Rosa Tschada. 2 Kinder.')"><div class="name">Friedrich Koller</div><div class="lifespan">1927-1993</div></div></li>
-                                        <li>
-                                            <div class="person-node" onclick="showDetails('Maria Hubert (geb. Koller)', 'geb. 1928', 'Partnerschaft mit Franz Schreiner. Heirat mit Alfons Hubert. 4 Kinder.')">
-                                                <div class="name">Maria Hubert <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
-                                                <div class="lifespan">geb. 1928</div>
-                                            </div>
-                                            <ul class="collapsed">
-                                                <li>
-                                                    <div class="person-node" onclick="showDetails('Sylvester Koller', 'geb. 1949', 'Heirat mit Christa Holl. 2 Kinder.')">
-                                                        <div class="name">Sylvester Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
-                                                        <div class="lifespan">geb. 1949</div>
-                                                    </div>
-                                                    <ul class="collapsed">
-                                                        <li><div class="person-node" onclick="showDetails('Thomas Koller', '1973-2003', 'Keine weiteren Daten.')"><div class="name">Thomas Koller</div><div class="lifespan">1973-2003</div></div></li>
-                                                        <li>
-                                                            <div class="person-node" onclick="showDetails('Steffen Koller', 'geb. 1975', 'Heirat 03.06.2011 mit Mareike Maier. 1 Kind.')">
-                                                                <div class="name">Steffen Koller <span class="toggle" onclick="event.stopPropagation(); toggleBranch(this)">[+]</span></div>
-                                                                <div class="spouse">& Mareike Maier</div>
-                                                            </div>
-                                                            <ul class="collapsed">
-                                                                <li><div class="person-node" onclick="showDetails('Madita Pauline Koller', 'geb. 06.02.2013', 'Tochter von Steffen und Mareike.')"><div class="name">Madita P. Koller</div><div class="lifespan">geb. 2013</div></div></li>
-                                                            </ul>
-                                                        </li>
-                                                    </ul>
-                                                </li>
-                                                <li><div class="person-node" onclick="showDetails('Anton Koller', '1952-1954', 'Sohn von Maria Koller.')"><div class="name">Anton Koller</div><div class="lifespan">1952-1954</div></div></li>
-                                                <li><div class="person-node" onclick="showDetails('Antonia R. Bauer', 'geb. 1958', 'Tochter von Maria Hubert. Heirat mit Otmar Bauer. 3 Kinder.')"><div class="name">Antonia R. Bauer</div><div class="lifespan">geb. 1958</div></div></li>
-                                                <li><div class="person-node" onclick="showDetails('Daniela M. Hubert', 'geb. 1958', 'Tochter von Maria Hubert. Heirat mit Ernst Holl. 3 Kinder.')"><div class="name">Daniela M. Holl</div><div class="lifespan">geb. 1958</div></div></li>
-                                            </ul>
-                                        </li>
-                                        <li><div class="person-node" onclick="showDetails('Lieselotte A. Koller', '1929-1930', 'Säugling.')"><div class="name">Lieselotte Koller</div><div class="lifespan">1929-1930</div></div></li>
-                                        <li><div class="person-node" onclick="showDetails('Regina Bartimäß', 'geb. 1933', 'Heirat mit Günther Bartimäß. 3 Kinder.')"><div class="name">Regina Bartimäß</div><div class="lifespan">geb. 1933</div></div></li>
-                                        <li><div class="person-node" onclick="showDetails('Therese Androwick', 'geb. 1934', 'Heirat mit William Androwick. 4 Kinder.')"><div class="name">Therese Androwick</div><div class="lifespan">geb. 1934</div></div></li>
-                                        <li><div class="person-node" onclick="showDetails('Rita Wölfl', 'geb. 1937', 'Heirat mit Ernst Wölfl. 3 Kinder.')"><div class="name">Rita Wölfl</div><div class="lifespan">geb. 1937</div></div></li>
-                                        <li><div class="person-node" onclick="showDetails('Jakob Koller', '1941-2013', 'Heirat mit Rosa Neumeier. 4 Kinder.')"><div class="name">Jakob Koller</div><div class="lifespan">1941-2013</div></div></li>
-                                        <li><div class="person-node" onclick="showDetails('Franziska Rettenberger', 'geb. 1943', 'Heirat mit Josef Rettenberger. 2 Kinder.')"><div class="name">Franziska Rettenberger</div><div class="lifespan">geb. 1943</div></div></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                        <li>
-                            <div class="person-node" onclick="showDetails('Katharina Haller (geb. Koller)', 'geb. 23.04.1845, gest. 01.07.1914', 'Heirat 10.11.1873 mit Franz-Xaver Haller (1842-1901).')">
-                                <div class="name">Katharina Haller</div>
-                                <div class="lifespan">1845 - 1914</div>
-                            </div>
-                        </li>
-                         <li>
-                            <div class="person-node" onclick="showDetails('Franziska Stern (geb. Koller)', 'geb. 15.12.1863, gest. 01.02.1927', 'Heirat 25.06.1888 mit Michael Stern (1852-1929).')">
-                                <div class="name">Franziska Stern</div>
-                                <div class="lifespan">1863 - 1927</div>
-                            </div>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
+    <!-- UI Controls will be dynamically generated here -->
+    <div id="controls-container" class="controls">
+        <!-- JS will populate this -->
     </div>
 
-    <!-- Das Modal für die Detailansicht -->
-    <div id="detailsModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2 id="modalName" class="text-2xl font-bold mb-4 text-sky-700"></h2>
-            <div id="modalDetails" class="text-slate-700 leading-relaxed"></div>
-        </div>
+    <!-- Container for the D3.js SVG visualization -->
+    <div id="tree-container"></div>
+
+    <!-- Tooltip element, hidden by default -->
+    <div id="tooltip" class="tooltip">
+        <div id="tooltip-name" class="name"></div>
+        <div id="tooltip-details" class="details"></div>
     </div>
 
     <script>
-        const modal = document.getElementById('detailsModal');
-        const modalName = document.getElementById('modalName');
-        const modalDetails = document.getElementById('modalDetails');
+        // The hierarchical data for the family tree.
+        const familyData = {
+          "name": "Johann Koller",
+          "details": { "geboren": "1807", "gestorben": "02.09.1881", "info": "Heirat 1831 mit Franziska geb. Müller (1807-1892). 4 Kinder." },
+          "children": [
+            { "name": "Xaver Koller", "details": { "geboren": "24.11.1832", "gestorben": "13.04.1919" } },
+            {
+              "name": "Georg Koller",
+              "details": { "geboren": "22.07.1843", "gestorben": "21.07.1928", "info": "Heirat 07.01.1873 mit Therese geb. Röck (1850-1923). 11 Kinder." },
+              "children": [
+                { "name": "Andreas Koller", "details": { "geboren": "1874", "gestorben": "1959", "info": "Heirat mit Therese Stadler. 6 Kinder." } },
+                { "name": "Georg Koller", "details": { "geboren": "1876", "gestorben": "1954", "info": "Heirat mit Centa. 2 Kinder." } },
+                { "name": "Franz Koller", "details": { "geboren": "1878", "gestorben": "1933", "info": "Heirat mit Anna Weikl. 14 Kinder." } },
+                { "name": "Baptist Koller", "details": { "geboren": "1880", "gestorben": "1963", "info": "Heirat mit Berta Wenzl. 1 Kind." } },
+                { "name": "Tobias Koller", "details": { "geboren": "1882", "gestorben": "1965", "info": "1. Ehe Cäzilia Weber (6 Kinder). 2. Ehe Maria Treml (10 Kinder)." } },
+                { "name": "Willibald Koller", "details": { "geboren": "1883", "gestorben": "1964", "info": "Heirat mit Maria Egner. 12 Kinder." } },
+                { "name": "Ludwig Koller", "details": { "geboren": "1886", "gestorben": "1974", "info": "Heirat mit Amalie Brandl. 6 Kinder." } },
+                { "name": "Josef Koller", "details": { "geboren": "1888", "gestorben": "1958", "info": "Heirat mit Johanna Graßl. 8 Kinder." } },
+                { "name": "Max Koller", "details": { "geboren": "1889", "gestorben": "1890" } },
+                { "name": "Therese Treml", "details": { "geboren": "1890", "gestorben": "1976", "info": "geb. Koller. Heirat mit August Treml. 4 Kinder." } },
+                {
+                  "name": "Sylvester Koller",
+                  "details": { "geboren": "23.07.1893", "gestorben": "24.03.1974", "info": "Heirat 06.03.1916 mit Mathilde geb. Hinkofer (1895-1974). 14 Kinder." },
+                  "children": [
+                    { "name": "Sylvester Koller", "details": { "geboren": "1917", "gestorben": "1937", "info": "Vom Blitz getroffen." } },
+                    {
+                      "name": "Wolfgang Koller",
+                      "details": { "geboren": "1918", "gestorben": "1996", "info": "Heirat mit Rosina Adam. 6 Kinder." },
+                      "children": [
+                        { "name": "Renate Weikl", "details": { "geboren": "1944", "info": "Heirat mit Franz Xaver Weikl. 2 Kinder." } },
+                        { "name": "Wolfgang Koller", "details": { "geboren": "1947", "info": "Heirat mit Marille Freimuth. 2 Kinder." } },
+                        { "name": "Rupert Koller", "details": { "geboren": "1950", "info": "2 Ehen. 3 Kinder." } },
+                        { "name": "Willibald S. Koller", "details": { "geboren": "1951", "info": "Heirat mit Paula Schlagintweit. 2 Kinder." } },
+                        { "name": "Karl J. Koller", "details": { "geboren": "1955", "info": "Heirat mit Isolde Geiger. 1 Kind." } },
+                        { "name": "Anton W. Koller", "details": { "geboren": "1959", "info": "Heirat mit Heidi Pöschl. 2 Kinder." } },
+                      ]
+                    },
+                    { "name": "Maria Koller", "details": { "geboren": "1920", "gestorben": "1920" } },
+                    { "name": "Alois Koller", "details": { "geboren": "1922", "gestorben": "1982", "info": "Partnerschaft mit Therese Brunner. Heirat mit Anna Drexler. 4 Kinder." } },
+                    { "name": "Siegfried Koller", "details": { "geboren": "1923", "gestorben": "1981", "info": "Heirat mit Katharina Hutterer. 5 Kinder." } },
+                    { "name": "Mathilde Wölfl", "details": { "geboren": "1925", "gestorben": "1980", "info": "Heirat mit Ernst Wölfl. 1 Kind." } },
+                    { "name": "Friedrich Koller", "details": { "geboren": "1927", "gestorben": "1993", "info": "Heirat mit Rosa Tschada. 2 Kinder." } },
+                    {
+                      "name": "Maria Hubert",
+                      "details": { "geboren": "1928", "info": "geb. Koller. Partnerschaft mit Franz Schreiner. Heirat mit Alfons Hubert. 4 Kinder." },
+                      "children": [
+                        {
+                          "name": "Sylvester Koller",
+                          "details": { "geboren": "1949", "info": "Heirat mit Christa Holl. 2 Kinder." },
+                          "children": [
+                            { "name": "Thomas Koller", "details": { "geboren": "1973", "gestorben": "2003" } },
+                            {
+                              "name": "Steffen Koller",
+                              "details": { "geboren": "1975", "info": "Heirat 03.06.2011 mit Mareike Maier. 2 Kinder." },
+                              "children": [
+                                { "name": "Madita P. Koller", "details": { "geboren": "06.02.2013" } },
+                                { "name": "Elva Koller", "details": { "geboren": "01.12.2014" } }
+                              ]
+                            }
+                          ]
+                        },
+                        { "name": "Anton Koller", "details": { "geboren": "1952", "gestorben": "1954" } },
+                        { "name": "Antonia R. Bauer", "details": { "geboren": "1958", "info": "Tochter von Maria Hubert. Heirat mit Otmar Bauer. 3 Kinder." } },
+                        { "name": "Daniela M. Holl", "details": { "geboren": "1958", "info": "Tochter von Maria Hubert. Heirat mit Ernst Holl. 3 Kinder." } }
+                      ]
+                    },
+                    { "name": "Lieselotte A. Koller", "details": { "geboren": "1929", "gestorben": "1930" } },
+                    { "name": "Regina Bartimäß", "details": { "geboren": "1933", "info": "Heirat mit Günther Bartimäß. 3 Kinder." } },
+                    { "name": "Therese Androwick", "details": { "geboren": "1934", "info": "Heirat mit William Androwick. 4 Kinder." } },
+                    { "name": "Rita Wölfl", "details": { "geboren": "1937", "info": "Heirat mit Ernst Wölfl. 3 Kinder." } },
+                    { "name": "Jakob Koller", "details": { "geboren": "1941", "gestorben": "2013", "info": "Heirat mit Rosa Neumeier. 4 Kinder." } },
+                    { "name": "Franziska Rettenberger", "details": { "geboren": "1943", "info": "Heirat mit Josef Rettenberger. 2 Kinder." } }
+                  ]
+                }
+              ]
+            },
+            { "name": "Katharina Haller", "details": { "geboren": "23.04.1845", "gestorben": "01.07.1914", "info": "geb. Koller. Heirat 10.11.1873 mit Franz-Xaver Haller (1842-1901)." } },
+            { "name": "Franziska Stern", "details": { "geboren": "15.12.1863", "gestorben": "01.02.1927", "info": "geb. Koller. Heirat 25.06.1888 mit Michael Stern (1852-1929)." } },
+          ]
+        };
+
+        // --- D3.js Visualization Code ---
+
+        const width = window.innerWidth;
+        const height = window.innerHeight;
         
-        function showDetails(name, lifespan, details) {
-            modalName.textContent = name;
-            let detailsHtml = `<p><strong>Lebensdaten:</strong><br>${lifespan}</p>`;
+        // This layout provides the base horizontal positions.
+        const treeLayout = d3.tree().nodeSize([140, 200]);
+
+        const svg = d3.select("#tree-container").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        const g = svg.append("g");
+
+        const tooltip = d3.select("#tooltip");
+        const tooltipName = d3.select("#tooltip-name");
+        const tooltipDetails = d3.select("#tooltip-details");
+
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 3])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+
+        svg.call(zoom);
+
+        let layoutSettings = {};
+
+        /**
+         * Recursively finds the maximum depth in the data tree.
+         * @param {object} node - The current node in the hierarchy.
+         * @returns {number} The maximum depth found.
+         */
+        function findMaxDepth(node) {
+            let max = node.depth;
+            if (node.children) {
+                node.children.forEach(child => {
+                    max = Math.max(max, findMaxDepth(child));
+                });
+            }
+            return max;
+        }
+
+        /**
+         * Reads the current layout settings from the DOM controls.
+         * @returns {object} An object mapping level index to layout ('horizontal' or 'vertical').
+         */
+        function getLayoutSettings() {
+            const settings = {};
+            const controls = d3.selectAll('.level-layout-switch');
+            controls.each(function() {
+                const level = this.dataset.level;
+                settings[level] = this.value;
+            });
+            return settings;
+        }
+
+        /**
+         * Creates the layout controls in the DOM based on the tree's depth.
+         * @param {number} maxDepth - The maximum depth of the family tree.
+         */
+        function createLayoutControls(maxDepth) {
+            const container = d3.select("#controls-container");
+            container.html(''); // Clear existing controls
+            for (let i = 0; i < maxDepth; i++) {
+                const controlGroup = container.append('div').attr('class', 'control-group');
+                
+                controlGroup.append('label')
+                    .attr('for', `level-switch-${i}`)
+                    .text(`Kinder von Ebene ${i}:`);
+
+                controlGroup.append('select')
+                    .attr('id', `level-switch-${i}`)
+                    .attr('data-level', i)
+                    .attr('class', 'level-layout-switch')
+                    .on('change', function() {
+                        layoutSettings = getLayoutSettings();
+                        update(root); // Redraw the tree with new settings
+                    })
+                    .selectAll('option')
+                    .data(['horizontal', 'vertical'])
+                    .enter()
+                    .append('option')
+                    .attr('value', d => d)
+                    .property("selected", d => d === 'horizontal') // Default to horizontal
+                    .text(d => d === 'horizontal' ? 'Horizontal' : 'Vertikal');
+            }
+        }
+
+        // --- Initial Data Processing ---
+        const tempRoot = d3.hierarchy(familyData);
+        const maxDepth = findMaxDepth(tempRoot);
+        createLayoutControls(maxDepth);
+        layoutSettings = getLayoutSettings();
+
+        const root = d3.hierarchy(familyData, d => d.children);
+        root.x0 = width / 2;
+        root.y0 = 0;
+
+        root.descendants().forEach((d, i) => {
+            d.id = i;
+            d._children = d.children;
+            if (d.depth > 1) { // Collapse all but the first two levels initially
+                d.children = null;
+            }
+        });
+        
+        let i = 0;
+
+        function update(source) {
+            const duration = 500;
+            
+            // 1. Get a base horizontal layout from d3.tree()
+            const treeData = treeLayout(root);
+            let nodes = treeData.descendants();
+            let links = treeData.links();
+
+            // 2. Adjust node positions based on per-level layout settings
+            const verticalYTracker = new Map();
+            const verticalNodeSpacing = { indent: 30, yGap: 50 };
+
+            // Iterate in pre-order (default from descendants) so parent positions are set first.
+            nodes.forEach(d => {
+                if (!d.parent) return; // Skip root
+
+                const parentLayout = layoutSettings[d.parent.depth];
+
+                if (parentLayout === 'vertical') {
+                    const parentId = d.parent.id;
+                    
+                    // X is indented from the parent's X.
+                    d.x = d.parent.x + verticalNodeSpacing.indent;
+
+                    // Y is stacked. Get the last Y for this parent's children, or start from the parent's Y.
+                    let lastY = verticalYTracker.get(parentId) || d.parent.y;
+                    d.y = lastY + verticalNodeSpacing.yGap;
+                    
+                    // Store the new Y position for the next sibling.
+                    verticalYTracker.set(parentId, d.y);
+                }
+            });
+
+            // --- NODES ---
+            const node = g.selectAll("g.node")
+                .data(nodes, d => d.id);
+
+            const nodeEnter = node.enter().append("g")
+                .attr("class", "node")
+                .attr("transform", d => `translate(${source.x0},${source.y0})`)
+                .on("click", click)
+                .on("mouseover", mouseover)
+                .on("mouseout", mouseout);
+
+            nodeEnter.append("circle")
+                .attr("r", 1e-6)
+                .style("fill", d => d._children ? "#0ea5e9" : "#fff");
+
+            nodeEnter.append("text")
+                .text(d => d.data.name);
+
+            const nodeUpdate = nodeEnter.merge(node);
+
+            nodeUpdate.transition()
+                .duration(duration)
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+            
+            // Adjust text position based on the layout of its parent
+            nodeUpdate.select("text")
+                .transition().duration(duration)
+                .attr("x", d => (!d.parent || layoutSettings[d.parent.depth] === 'horizontal') ? 0 : 15)
+                .attr("y", d => (!d.parent || layoutSettings[d.parent.depth] === 'horizontal') ? 30 : 5)
+                .attr("text-anchor", d => (!d.parent || layoutSettings[d.parent.depth] === 'horizontal') ? "middle" : "start");
+
+            nodeUpdate.select("circle")
+                .attr("r", 10)
+                .style("fill", d => d._children ? "#0ea5e9" : "#fff");
+
+            const nodeExit = node.exit().transition()
+                .duration(duration)
+                .attr("transform", d => `translate(${source.x},${source.y})`)
+                .remove();
+
+            nodeExit.select("circle").attr("r", 1e-6);
+            nodeExit.select("text").style("fill-opacity", 1e-6);
+
+            // --- LINKS ---
+            const link = g.selectAll("path.link")
+                .data(links, d => d.target.id);
+
+            const linkEnter = link.enter().insert("path", "g")
+                .attr("class", "link")
+                .attr("d", d => {
+                    const o = { x: source.x0, y: source.y0, parent: source.parent };
+                    return elbow(o, o);
+                });
+
+            linkEnter.merge(link).transition()
+                .duration(duration)
+                .attr("d", d => elbow(d.source, d.target));
+
+            link.exit().transition()
+                .duration(duration)
+                .attr("d", d => {
+                    const o = { x: source.x, y: source.y, parent: source.parent };
+                    return elbow(o, o);
+                })
+                .remove();
+
+            nodes.forEach(d => {
+                d.x0 = d.x;
+                d.y0 = d.y;
+            });
+        }
+
+        /**
+         * Generates the path for a link, adapting to the layout style.
+         */
+        function elbow(s, d) {
+            if (!d.parent) return `M${s.x},${s.y}L${d.x},${d.y}`;
+            const parentLayout = layoutSettings[d.parent.depth];
+            
+            if (parentLayout === 'vertical') {
+                // Vertical list style connector
+                return `M${s.x},${s.y} L${s.x},${d.y} L${d.x},${d.y}`;
+            }
+            // Horizontal tree style connector
+            return `M${s.x},${s.y}V${(s.y + d.y) / 2}H${d.x}V${d.y}`;
+        }
+
+        /**
+         * Toggles children visibility on click.
+         */
+        function click(event, d) {
+            if (d.children) {
+                d._children = d.children;
+                d.children = null;
+            } else {
+                d.children = d._children;
+                d._children = null;
+            }
+            update(d);
+        }
+        
+        /**
+         * Shows the tooltip on mouseover.
+         */
+        function mouseover(event, d) {
+            tooltip.transition().duration(200).style("opacity", .95);
+            
+            let detailsHTML = '';
+            const details = d.data.details;
             if (details) {
-                 detailsHtml += `<p class="mt-4"><strong>Familie & Details:</strong><br>${details}</p>`;
+                if (details.geboren || details.gestorben) {
+                    detailsHTML += `<p><strong>Lebensdaten:</strong> ${details.geboren || '?'} - ${details.gestorben || '?'}</p>`;
+                }
+                if (details.info) {
+                    detailsHTML += `<p class="mt-2"><strong>Info:</strong> ${details.info}</p>`;
+                }
             }
-            modalDetails.innerHTML = detailsHtml;
-            modal.style.display = "block";
+            
+            tooltipName.text(d.data.name);
+            tooltipDetails.html(detailsHTML || 'Keine weiteren Details verfügbar.');
+
+            tooltip.style("left", (event.pageX + 15) + "px")
+                   .style("top", (event.pageY - 28) + "px");
         }
 
-        function closeModal() {
-            modal.style.display = "none";
+        /**
+         * Hides the tooltip on mouseout.
+         */
+        function mouseout(event, d) {
+            tooltip.transition().duration(500).style("opacity", 0);
         }
 
-        function toggleBranch(toggleElement) {
-            const parentLi = toggleElement.closest('li');
-            const childUl = parentLi.querySelector('ul');
-            if (childUl) {
-                childUl.classList.toggle('collapsed');
-                toggleElement.textContent = childUl.classList.contains('collapsed') ? '[+]' : '[-]';
-            }
-        }
+        // --- Initial Draw & Viewport Setup ---
+        update(root);
+        
+        // Center the initial view
+        const initialTransform = d3.zoomIdentity.translate(width / 2, 80).scale(0.7);
+        svg.call(zoom.transform, initialTransform);
 
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                closeModal();
-            }
-        }
+        window.addEventListener('resize', () => {
+            svg.attr('width', window.innerWidth).attr('height', window.innerHeight);
+        });
+
     </script>
-
 </body>
 </html>
