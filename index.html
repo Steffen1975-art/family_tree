@@ -34,7 +34,7 @@
         /* Styling for the person nodes (groups of circle and text) */
         .node {
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px; /* Increased font size */
         }
 
         .node circle {
@@ -873,6 +873,14 @@
                 selectedNode = d.parent; 
             } else {
                 d.children = d._children;
+                if (d.children) {
+                    d.children.forEach(child => {
+                        if (child.children) {
+                            child._children = child.children;
+                            child.children = null;
+                        }
+                    });
+                }
                 highlightBranch(d);
             }
             update(d);
