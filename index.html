@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktiver Stammbaum - Familie Koller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+        }
+        /* Styling für den Baum */
+        .tree-container {
+            width: 100%;
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+        .tree {
+            display: inline-flex; /* Wichtig für horizontales Layout */
+            white-space: nowrap;
+        }
+        .tree ul {
+            padding-top: 20px;
+            position: relative;
+            transition: all 0.5s;
+            display: flex;
+            justify-content: center;
+        }
+        .tree li {
+            float: left;
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+            transition: all 0.5s;
+        }
+        /* Linien zwischen den Knoten */
+        .tree li::before, .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px solid #64748b;
+            width: 50%;
+            height: 20px;
+        }
+        .tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 2px solid #64748b;
+        }
+        .tree li:only-child::after, .tree li:only-child::before {
+            display: none;
+        }
+        .tree li:only-child {
+            padding-top: 0;
+        }
+        .tree li:first-child::before, .tree li:last-child::after {
+            border: 0 none;
+        }
+        .tree li:last-child::before {
+            border-right: 2px solid #64748b;
+            border-radius: 0 5px 0 0;
+        }
+        .tree li:first-child::after {
+            border-radius: 5px 0 0 0;
+        }
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px solid #64748b;
+            width: 0;
+            height: 20px;
+        }
+        .tree li .person {
+            border: 2px solid #94a3b8;
+            padding: 10px;
+            text-decoration: none;
+            color: #1e293b;
+            background-color: #ffffff;
+            display: inline-block;
+            border-radius: 8px;
+            min-width: 160px;
+            transition: all 0.3s;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .tree li .person:hover, .tree li .person.active {
+            background-color: #0ea5e9;
+            color: white;
+            border-color: #0284c7;
+        }
+        .tree li .person .name {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .tree li .person .lifespan {
+            font-size: 0.8rem;
+            color: #475569;
+        }
+        .tree li .person:hover .lifespan, .tree li .person.active .lifespan {
+            color: #e0f2fe;
+        }
+        .tree .spouse {
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+        /* Modal für Details */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover, .close:focus {
+            color: black;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold text-sky-700">Ahnengalerie der Familie Koller</h1>
+        <p class="text-slate-600 mt-2">Ein interaktiver Überblick basierend auf dem bereitgestellten PDF.</p>
+    </div>
+
+    <div class="tree-container">
+        <div class="tree">
+            <ul>
+                <li>
+                    <div class="person" onclick="showDetails('Johann Koller', 'geb. 1807<br>gest. 02.09.1881', 'Franziska geb. Müller (geb. 1807, gest. 18.07.1892)<br>Heirat: 1831<br>4 Kinder')">
+                        <div class="name">Johann Koller</div>
+                        <div class="spouse">& Franziska Müller</div>
+                        <div class="lifespan">1807 - 1881</div>
+                    </div>
+                    <ul>
+                        <li>
+                            <div class="person" onclick="showDetails('Xaver Koller', 'geb. 24.11.1832<br>gest. 13.04.1919', 'Keine weiteren Daten im PDF.')">
+                                <div class="name">Xaver Koller</div>
+                                <div class="lifespan">1832 - 1919</div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="person" onclick="showDetails('Georg Koller', 'geb. 22.07.1843<br>gest. 21.07.1928', 'Therese geb. Röck (geb. 23.03.1850, gest. 24.07.1923)<br>Heirat: 07.01.1873<br>11 Kinder')">
+                                <div class="name">Georg Koller</div>
+                                <div class="spouse">& Therese Röck</div>
+                                <div class="lifespan">1843 - 1928</div>
+                            </div>
+                            <!-- Kinder von Georg und Therese -->
+                            <ul>
+                                <li>
+                                    <div class="person" onclick="showDetails('Andreas Koller', 'geb. 01.01.1874<br>gest. 10.05.1959', 'Therese geb. Stadler (geb. 30.05.1873, gest. 19.12.1960)<br>Heirat: 02.05.1898<br>6 Kinder')">
+                                        <div class="name">Andreas Koller</div>
+                                        <div class="spouse">& Therese Stadler</div>
+                                        <div class="lifespan">1874 - 1959</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="person" onclick="showDetails('Georg Koller', 'geb. 26.02.1876<br>gest. 04.10.1954', 'Centa (Daten unbekannt)<br>Heirat mit Centa - Daten unbekannt<br>2 Kinder: Georg, Willibald')">
+                                        <div class="name">Georg Koller</div>
+                                        <div class="spouse">& Centa</div>
+                                        <div class="lifespan">1876 - 1954</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="person" onclick="showDetails('Franz Koller', 'geb. 19.03.1878<br>gest. 09.11.1933', 'Anna geb. Weikl (geb. 30.05.1882, gest. 20.08.1928)<br>Heirat: 26.01.1902<br>14 Kinder')">
+                                        <div class="name">Franz Koller</div>
+                                        <div class="spouse">& Anna Weikl</div>
+                                        <div class="lifespan">1878 - 1933</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="person" onclick="showDetails('Baptist Koller', 'geb. 20.06.1880<br>gest. 27.08.1963', 'Berta geb. Wenzl (geb. 11.12.1882, gest. 01.01.1961)<br>Heirat: unbekannt<br>1 Kind: Baptist')">
+                                        <div class="name">Baptist Koller</div>
+                                        <div class="spouse">& Berta Wenzl</div>
+                                        <div class="lifespan">1880 - 1963</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="person" onclick="showDetails('Tobias Koller', 'geb. 10.09.1882<br>gest. 18.01.1965', '1. Ehe: Cäzilia geb. Weber (geb. 08.07.1883, gest. 13.12.1916), Heirat: 24.09.1906, 6 Kinder<br>2. Ehe: Maria Treml (geb. 11.09.1892, gest. 16.02.1980), Heirat: 22.04.1918, 10 Kinder')">
+                                        <div class="name">Tobias Koller</div>
+                                        <div class="spouse">& Cäzilia / Maria</div>
+                                        <div class="lifespan">1882 - 1965</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="person" onclick="showDetails('Willibald Koller', 'geb. 13.09.1883<br>gest. 15.11.1964', 'Maria geb. Egner (geb. 16.06.1882, gest. 09.02.1956)<br>Heirat: 06.08.1906<br>12 Kinder')">
+                                        <div class="name">Willibald Koller</div>
+                                        <div class="spouse">& Maria Egner</div>
+                                        <div class="lifespan">1883 - 1964</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="person" onclick="showDetails('Ludwig Koller', 'geb. 16.01.1886<br>gest. 26.01.1974', 'Amalie geb. Brandl (geb. 16.01.1887, gest. 31.05.1969)<br>Heirat: 08.05.1911<br>6 Kinder')">
+                                        <div class="name">Ludwig Koller</div>
+                                        <div class="spouse">& Amalie Brandl</div>
+                                        <div class="lifespan">1886 - 1974</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="person" onclick="showDetails('Josef Koller', 'geb. 13.03.1888<br>gest. 30.10.1958', 'Johanna geb. Graßl (geb. 07.02.1891, gest. 05.02.1970)<br>Heirat: 13.07.1920<br>8 Kinder')">
+                                        <div class="name">Josef Koller</div>
+                                        <div class="spouse">& Johanna Graßl</div>
+                                        <div class="lifespan">1888 - 1958</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="person" onclick="showDetails('Max Koller', 'geb. 20.04.1889<br>gest. 11.03.1890', 'Keine weiteren Daten.')">
+                                        <div class="name">Max Koller</div>
+                                        <div class="lifespan">1889 - 1890</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="person" onclick="showDetails('Therese Koller', 'geb. 12.08.1890<br>gest. 27.08.1976', 'August Treml (geb. 27.08.1896, gest. 10.01.1975)<br>Heirat: 1920<br>4 Kinder')">
+                                        <div class="name">Therese Treml</div>
+                                        <div class="spouse">(geb. Koller)</div>
+                                        <div class="lifespan">1890 - 1976</div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="person" onclick="showDetails('Sylvester Koller', 'geb. 23.07.1893<br>gest. 24.03.1974', 'Mathilde geb. Hinkofer (geb. 28.12.1895, gest. 06.02.1974)<br>Heirat: 06.03.1916<br>14 Kinder')">
+                                        <div class="name">Sylvester Koller</div>
+                                        <div class="spouse">& Mathilde Hinkofer</div>
+                                        <div class="lifespan">1893 - 1974</div>
+                                    </div>
+                                    <!-- Kinder von Sylvester und Mathilde -->
+                                    <ul>
+                                        <li>
+                                            <div class="person" onclick="showDetails('Wolfgang Koller', 'geb. 30.10.1918<br>gest. 04.02.1996', 'Rosina geb. Adam (geb. 28.03.1922, gest. 16.09.1999)<br>Heirat: 24.01.1946<br>6 Kinder')">
+                                                <div class="name">Wolfgang Koller</div>
+                                                <div class="spouse">& Rosina Adam</div>
+                                                <div class="lifespan">1918 - 1996</div>
+                                            </div>
+                                            <!-- Kinder von Wolfgang und Rosina -->
+                                            <ul>
+                                                <li>
+                                                    <div class="person" onclick="showDetails('Renate Franziska Adam', 'geb. 13.12.1944', 'Franz Xaver Weikl (geb. 20.04.1938)<br>Heirat: 06.08.1963<br>2 Kinder')">
+                                                        <div class="name">Renate Weikl</div>
+                                                        <div class="spouse">(geb. Adam)</div>
+                                                        <div class="lifespan">geb. 1944</div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="person" onclick="showDetails('Wolfgang Koller', 'geb. 06.03.1947', 'Marille geb. Freimuth (geb. 21.07.1953)<br>Heirat: 11.04.1970<br>2 Kinder')">
+                                                        <div class="name">Wolfgang Koller</div>
+                                                        <div class="spouse">& Marille Freimuth</div>
+                                                        <div class="lifespan">geb. 1947</div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="person" onclick="showDetails('Rupert Koller', 'geb. 26.05.1950', '1. Heirat: Elvira Franziska geb. Ziemer, 20.10.1973 (geschieden)<br>2. Heirat: Renate Maria geb. Fuchs, 28.11.1997<br>3 Kinder aus 1. Ehe')">
+                                                        <div class="name">Rupert Koller</div>
+                                                        <div class="lifespan">geb. 1950</div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="person" onclick="showDetails('Willibald Siegfried Koller', 'geb. 01.12.1951', 'Paula Roswitha geb. Schlagintweit (geb. 16.09.1955)<br>Heirat: 05.09.1975<br>2 Kinder')">
+                                                        <div class="name">Willibald S. Koller</div>
+                                                         <div class="spouse">& Paula Schlagintweit</div>
+                                                        <div class="lifespan">geb. 1951</div>
+                                                    </div>
+                                                </li>
+                                                 <li>
+                                                    <div class="person" onclick="showDetails('Karl Josef Koller', 'geb. 13.11.1955', 'Isolde Brigitte geb. Geiger (geb. 14.10.1960)<br>Heirat: 10.05.1980<br>1 Kind')">
+                                                        <div class="name">Karl Josef Koller</div>
+                                                        <div class="spouse">& Isolde Geiger</div>
+                                                        <div class="lifespan">geb. 1955</div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="person" onclick="showDetails('Anton Wilhelm Koller', 'geb. 02.07.1959', 'Heirat: Heidi Gabriele geb. Pöschl (geschieden)<br>Lebensgefährtin: Gabriela Dackelmann<br>2 Kinder aus 1. Ehe')">
+                                                        <div class="name">Anton Wilhelm Koller</div>
+                                                        <div class="lifespan">geb. 1959</div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <div class="person" onclick="showDetails('Maria Koller', 'geb. 19.04.1928', 'Lebensgefährte: Franz Xaver Schreiner<br>Heirat: Alfons Georg Hubert<br>Insgesamt 4 Kinder')">
+                                                <div class="name">Maria Hubert</div>
+                                                <div class="spouse">(geb. Koller)</div>
+                                                <div class="lifespan">geb. 1928</div>
+                                            </div>
+                                            <!-- Kinder von Maria Koller/Hubert -->
+                                            <ul>
+                                                <li>
+                                                    <div class="person" onclick="showDetails('Sylvester Koller', 'geb. 08.04.1949', 'Christa Pauline Holl (geb. 07.11.1951, gest. 08.10.2012)<br>Heirat: 08.09.1972<br>2 Kinder')">
+                                                        <div class="name">Sylvester Koller</div>
+                                                        <div class="spouse">& Christa Holl</div>
+                                                        <div class="lifespan">geb. 1949</div>
+                                                    </div>
+                                                    <!-- Kinder von Sylvester und Christa -->
+                                                    <ul>
+                                                        <li>
+                                                            <div class="person" onclick="showDetails('Steffen Koller', 'geb. 09.08.1975', 'Mareike geb. Maier (geb. 18.11.1981)<br>Heirat: 03.06.2011<br>1 Kind: Madita Pauline Koller (geb. 06.02.2013)')">
+                                                                <div class="name">Steffen Koller</div>
+                                                                <div class="spouse">& Mareike Maier</div>
+                                                                <div class="lifespan">geb. 1975</div>
+                                                            </div>
+                                                        </li>
+                                                         <li>
+                                                            <div class="person" onclick="showDetails('Thomas Koller', 'geb. 12.08.1973<br>gest. 13.11.2003', 'Keine weiteren Daten.')">
+                                                                <div class="name">Thomas Koller</div>
+                                                                <div class="lifespan">1973 - 2003</div>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <!-- Hier könnten die anderen 12 Kinder von Sylvester & Mathilde hinzugefügt werden -->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <div class="person" onclick="showDetails('Katharina Koller', 'geb. 23.04.1845<br>gest. 01.07.1914', 'Franz-Xaver Haller (geb. 12.11.1842, gest. 26.08.1901)<br>Heirat: 10.11.1873')">
+                                <div class="name">Katharina Haller</div>
+                                <div class="spouse">(geb. Koller)</div>
+                                <div class="lifespan">1845 - 1914</div>
+                            </div>
+                        </li>
+                         <li>
+                            <div class="person" onclick="showDetails('Franziska Koller', 'geb. 15.12.1863<br>gest. 01.02.1927', 'Michael Stern (geb. 14.07.1852, gest. 15.12.1929)<br>Heirat: 25.06.1888')">
+                                <div class="name">Franziska Stern</div>
+                                <div class="spouse">(geb. Koller)</div>
+                                <div class="lifespan">1863 - 1927</div>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Das Modal für die Detailansicht -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalName" class="text-2xl font-bold mb-4 text-sky-700"></h2>
+            <div id="modalDetails" class="text-slate-700 leading-relaxed"></div>
+        </div>
+    </div>
+
+    <script>
+        // Referenzen zum Modal
+        const modal = document.getElementById('detailsModal');
+        const modalName = document.getElementById('modalName');
+        const modalDetails = document.getElementById('modalDetails');
+        let activePerson = null;
+
+        // Funktion zum Anzeigen der Details im Modal
+        function showDetails(name, lifespan, details) {
+            modalName.textContent = name;
+            
+            let detailsHtml = `<p><strong>Lebensdaten:</strong><br>${lifespan}</p>`;
+            if (details) {
+                 detailsHtml += `<p class="mt-4"><strong>Partner & Familie:</strong><br>${details}</p>`;
+            }
+
+            modalDetails.innerHTML = detailsHtml;
+            modal.style.display = "block";
+
+            // Markiere die aktive Person
+            if (activePerson) {
+                activePerson.classList.remove('active');
+            }
+            // Finde das geklickte Element
+            const persons = document.querySelectorAll('.person');
+            persons.forEach(p => {
+                if (p.querySelector('.name').textContent === name.split(' ')[0] || p.querySelector('.name').textContent === name) {
+                     // Versuche eine Übereinstimmung zu finden, auch bei Namensänderung durch Heirat
+                    const nameInDiv = p.querySelector('.name').textContent;
+                    const spouseDiv = p.querySelector('.spouse');
+                    let fullNameInDiv = nameInDiv;
+                    if(spouseDiv) {
+                        // Bessere Logik wäre hier nötig für komplexe Fälle
+                    }
+                    if(name === nameInDiv) {
+                         p.classList.add('active');
+                         activePerson = p;
+                    }
+                }
+            });
+        }
+
+        // Funktion zum Schließen des Modals
+        function closeModal() {
+            modal.style.display = "none";
+            if (activePerson) {
+                activePerson.classList.remove('active');
+                activePerson = null;
+            }
+        }
+
+        // Schließe das Modal, wenn außerhalb geklickt wird
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+
+</body>
+</html>
