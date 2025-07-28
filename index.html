@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interaktiver Stammbaum - Familie Koller (Finale Version)</title>
+    <title>Interaktiver Stammbaum - Familien Koller & Holl</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -21,29 +21,32 @@
         #tree-container {
             width: 100vw;
             height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         /* Styling for the connecting lines (links) */
         .link {
             fill: none;
-            stroke: #cbd5e1; /* Lighter default stroke */
+            stroke: #cbd5e1;
             stroke-width: 2px;
             transition: stroke 0.5s ease;
         }
 
-        /* Styling for the person nodes (groups of circle and text) */
+        /* Styling for the person nodes */
         .node {
             cursor: pointer;
-            font-size: 15px; /* Increased font size */
+            font-size: 15px;
         }
 
         .node circle {
-            stroke: #38bdf8; /* Lighter blue */
+            stroke: #38bdf8;
             stroke-width: 2.5px;
             transition: fill 0.3s ease, transform 0.3s ease, stroke 0.3s ease;
         }
         
-        /* --- HIGHLIGHTING STYLES --- */
+        /* Highlighting styles from original Koller tree */
         .node.highlight circle {
             stroke: #f43f5e; /* Rose 500 for main selection */
             fill: #ffe4e6;
@@ -61,7 +64,6 @@
             stroke-width: 3px;
         }
 
-
         .node text {
             font-weight: 500;
             paint-order: stroke;
@@ -75,8 +77,8 @@
             transform: scale(1.1);
         }
         
-        /* Controls for layout switching */
-        .controls {
+        /* Controls Panel */
+        .panel {
             position: absolute;
             top: 1rem;
             right: 1rem;
@@ -88,7 +90,7 @@
             overflow-y: auto;
         }
         
-        .controls-header {
+        .panel-header {
             padding: 0.75rem;
             font-weight: 700;
             cursor: pointer;
@@ -97,66 +99,99 @@
             align-items: center;
         }
 
-        .controls-header svg {
+        .panel-header svg {
             width: 1.25rem;
             height: 1.25rem;
             transition: transform 0.3s ease;
         }
 
-        .controls-content {
+        .panel-content {
             padding: 0 0.75rem 0.75rem 0.75rem;
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
-            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
-            max-height: 1000px; /* High value for open state */
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 1000px;
             opacity: 1;
             overflow: hidden;
         }
 
-        .controls-content.collapsed {
+        .panel-content.collapsed {
             max-height: 0;
             opacity: 0;
             padding-top: 0;
             padding-bottom: 0;
         }
 
-        .controls.collapsed .controls-header svg {
+        .panel.collapsed .panel-header svg {
             transform: rotate(-90deg);
         }
 
-        .controls .control-group {
+        .panel .control-group {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .panel .control-row {
+             display: flex;
+             align-items: center;
+             justify-content: space-between;
         }
 
-        .controls label {
+        .panel label {
             margin-right: 0.75rem;
             font-size: 0.875rem;
             font-weight: 500;
             white-space: nowrap;
         }
 
-        .controls select, .controls input {
+        .panel select, .panel input[type="text"] {
             border-radius: 6px;
             border: 1px solid #d1d5db;
             padding: 0.25rem 0.5rem;
-            width: 120px; /* Give select a bit more width */
+            width: 100%;
         }
         
-        .controls button {
+        .panel button {
             width: 100%;
             padding: 0.5rem;
             border-radius: 6px;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
+            border: 1px solid transparent;
+            background-color: #f3f4f6;
             font-weight: 500;
             cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .panel button:hover {
+            background-color: #e5e7eb;
+        }
+        .panel button.primary {
+            background-color: #0ea5e9;
+            color: white;
+        }
+        .panel button.primary:hover {
+            background-color: #0284c7;
+        }
+
+        .view-switcher label {
+            display: block;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 500;
             transition: background-color 0.2s;
         }
-        .controls button:hover {
-            background-color: #f3f4f6;
+        .view-switcher input[type="radio"] {
+            display: none;
+        }
+        .view-switcher input[type="radio"]:checked + label {
+            background-color: #38bdf8;
+            color: white;
+        }
+        .view-switcher label:not(input[type="radio"]:checked + label):hover {
+            background-color: #f1f5f9;
         }
         
         /* Search specific styles */
@@ -184,7 +219,7 @@
             background-color: #f1f5f9;
         }
 
-        /* Tooltip for displaying details on hover */
+        /* Tooltip */
         .tooltip {
             position: absolute;
             text-align: left;
@@ -208,11 +243,11 @@
 <body>
 
     <div class="absolute top-0 left-0 p-4 md:p-6 z-10 w-full bg-gradient-to-b from-white via-white/80 to-transparent pointer-events-none">
-        <h1 class="text-2xl md:text-3xl font-bold text-sky-800">Ahnengalerie der Familie Koller</h1>
-        <p class="text-slate-600 mt-1 text-sm md:text-base">Knoten anklicken zum Erweitern/Reduzieren. Zoomen und Verschieben mit Maus/Touch.</p>
+        <h1 id="main-title" class="text-2xl md:text-3xl font-bold text-sky-800">Ahnengalerie</h1>
+        <p class="text-slate-600 mt-1 text-sm md:text-base">Ansicht wählen, Knoten anklicken, Zoomen & Verschieben.</p>
     </div>
 
-    <div id="controls-container" class="controls">
+    <div id="controls-container" class="panel">
         <!-- JS will populate this -->
     </div>
 
@@ -224,7 +259,10 @@
     </div>
 
     <script>
-        const familyData = {
+        // --- DATA SECTION ---
+        // This section contains all the genealogical data for both families.
+        
+        const kollerData = {
             "name": "Johann Koller", "details": { "geboren": "1807", "gestorben": "02.09.1881", "info": "Heirat 1831 mit Franziska geb. Müller (1807-1892)." },
             "children": [
                 { "name": "Xaver Koller", "details": { "geboren": "24.11.1832", "gestorben": "13.04.1919" } },
@@ -551,77 +589,273 @@
             ]
         };
 
-        // --- D3.js Visualization Code ---
+        const hollData = {
+            "name": "Georg Holl", "details": { "geboren": "15.06.1874", "gestorben": "28.02.1947", "info": "1. Heirat 21.04.1904 mit Pauline geb. Betz (1881-1918). 2. Heirat 20.05.1918 mit Pauline geb. Vollmer (1885-1965)." },
+            "children": [
+                { "name": "Pauline Holl", "details": { "geboren": "28.09.1904", "gestorben": "21.12.1906", "info": "Aus 1. Ehe" } },
+                { "name": "Klara Holl", "details": { "geboren": "29.10.1905", "gestorben": "26.08.1906", "info": "Aus 1. Ehe" } },
+                {
+                    "name": "Hermann Holl", "details": { "geboren": "13.09.1906", "gestorben": "01.02.1979", "info": "Aus 1. Ehe. Heirat 24.06.1940 mit Anna geb. Sparrer (1921-1984)." },
+                    "children": [
+                        { "name": "Hermann Holl", "details": { "geboren": "24.10.1944", "gestorben": "02.03.2000" } },
+                        { "name": "Elfriede Brunner", "details": { "geboren": "03.04.1947", "info": "geb. Holl. Heirat 04.06.1966 mit Hans Brunner (geb. 1943)." }, "children": [
+                            { "name": "Maximilian Brunner", "details": { "geboren": "13.12.1966", "gestorben": "23.11.1986" } },
+                            { "name": "Sabine Müller", "details": { "geboren": "02.03.1970", "info": "geb. Brunner. Heirat 25.10.1996 mit Christian Müller (geb. 1973)." }, "children": [
+                                { "name": "Stefan Müller", "details": { "geboren": "21.12.1995" } },
+                                { "name": "Veronika Müller", "details": { "geboren": "12.10.1999" } }
+                            ]}
+                        ]},
+                        { "name": "Anna Fischer", "details": { "geboren": "27.01.1950", "info": "geb. Holl. Heirat 02.07.1971 mit Alois Fischer (geb. 1947)." }, "children": [
+                            { "name": "Richard Fischer", "details": { "geboren": "15.04.1980", "info": "Heirat 20.08.2010 mit Franziska Schindler (geb. 1985)." }, "children": [
+                                { "name": "Korbinian Fischer", "details": { "geboren": "04.12.2010" } }
+                            ]},
+                            { "name": "Kastulus Fischer-Hagl", "details": { "geboren": "20.10.1982" } }
+                        ]}
+                    ]
+                },
+                {
+                    "name": "Karl Holl", "details": { "geboren": "03.01.1908", "gestorben": "03.12.1987", "info": "Aus 1. Ehe. Heirat 19.05.1934 mit Christine geb. Schwenk (1913-1996)." },
+                    "children": [
+                        { "name": "Karl Holl", "details": { "geboren": "15.07.1937", "info": "Heirat 25.08.1961 mit Anna Schöll (geb. 1939)." }, "children": [
+                            { "name": "Wolfgang Holl", "details": { "geboren": "05.09.1961", "info": "Heirat 27.08.1988 mit Gerda Loser (geb. 1963)." }, "children": [
+                                { "name": "Michael Holl", "details": { "geboren": "06.03.1991" } },
+                                { "name": "Andre Holl", "details": { "geboren": "09.08.1995" } }
+                            ]},
+                            { "name": "Margit Ihle", "details": { "geboren": "01.04.1966", "info": "geb. Holl. Heirat 26.07.1996 mit Anton Ihle (geb. 1963)." }, "children": [
+                                { "name": "Madeleine Ihle", "details": { "geboren": "11.05.1997" } },
+                                { "name": "Max Ihle", "details": { "geboren": "10.09.2001" } }
+                            ]},
+                            { "name": "Elke Eckhardt", "details": { "geboren": "16.03.1969", "info": "geb. Holl. Heirat 07.05.1999 mit Klaus Eckhardt (geb. 1969)." }, "children": [
+                                { "name": "Pascal Eckhardt", "details": { "geboren": "04.07.2000" } },
+                                { "name": "Nina Eckhardt", "details": { "geboren": "26.06.2005" } }
+                            ]}
+                        ]},
+                        { "name": "Christa Kirsamer", "details": { "geboren": "30.12.1941", "info": "geb. Holl. Heirat 07.02.1964 mit Johannes Kirsamer (geb. 1940)." }, "children": [
+                            { "name": "Gisela Wörz", "details": { "geboren": "17.06.1964", "info": "geb. Kirsamer. Heirat 06.06.1991 mit Wolfgang Wörz (geb. 1957)." }, "children": [
+                                { "name": "Carina Wörz", "details": { "geboren": "14.04.1992" } },
+                                { "name": "Marco Wörz", "details": { "geboren": "24.12.1994" } }
+                            ]},
+                            { "name": "Thomas Kirsamer", "details": { "geboren": "24.01.1966", "info": "Heirat 25.03.1993 mit Heidi Groß (geb. 1967)." }, "children": [
+                                { "name": "Jana Kirsamer", "details": { "geboren": "02.01.1997" } },
+                                { "name": "Linda Kirsamer", "details": { "geboren": "02.01.1997" } },
+                                { "name": "Jonas Kirsamer", "details": { "geboren": "28.08.2000" } }
+                            ]},
+                            { "name": "Martin Kirsamer", "details": { "geboren": "13.02.1970", "info": "1. Heirat 12.06.1992 (geschieden) mit Johanna Hekli (geb. 1965). 2. Heirat mit Steffi Bock (geb. 1969)." }, "children": [
+                                { "name": "Nadine Kirsamer", "details": { "geboren": "02.12.1992", "info": "Tochter mit Johanna Hekli." } },
+                                { "name": "Dorina Kirsamer", "details": { "geboren": "24.08.1995", "info": "Tochter mit Johanna Hekli." } }
+                            ]}
+                        ]},
+                        { "name": "Erich Holl", "details": { "geboren": "20.01.1943", "info": "Heirat 18.09.1970 mit Maria Till (1949-2009)." }, "children": [
+                            { "name": "Andrea Holl", "details": { "geboren": "10.12.1974" } },
+                            { "name": "Jochen Holl", "details": { "geboren": "29.08.1977", "info": "Heirat 17.09.2010 mit Helga Bayer (geb. 1978)." }, "children": [
+                                { "name": "Nora Holl", "details": { "geboren": "28.08.2009" } },
+                                { "name": "Milla Holl", "details": { "geboren": "11.08.2011" } }
+                            ]}
+                        ]}
+                    ]
+                },
+                { "name": "Maria Holl", "details": { "geboren": "22.05.1909", "gestorben": "02.05.1910", "info": "Aus 1. Ehe" } },
+                {
+                    "name": "Ernst Holl", "details": { "geboren": "21.06.1910", "gestorben": "24.10.1974", "info": "Aus 1. Ehe. Heirat 25.01.1946 mit Anna geb. Fischer (1923-2004)." },
+                    "children": [
+                        { "name": "Ernst Holl", "details": { "geboren": "03.12.1946", "info": "Heirat 12.05.1979 mit Daniela Hubert (geb. 1958)." }, "children": [
+                            { "name": "Carolin Binder", "details": { "geboren": "24.10.1979", "info": "geb. Holl. Heirat 08.05.2009 mit Gottfried Binder (geb. 1981)." }, "children": [
+                                { "name": "Jana Binder", "details": { "geboren": "25.08.2010" } },
+                                { "name": "Luis Binder", "details": { "geboren": "24.02.2013" } }
+                            ]},
+                            { "name": "Susanne Casper", "details": { "geboren": "27.01.1981", "info": "geb. Holl. Heirat 05.05.2007 mit Klaus Casper (geb. 1971)." }, "children": [
+                                { "name": "Alexander Casper", "details": { "geboren": "03.05.2010" } }
+                            ]},
+                            { "name": "Michaela Wieser", "details": { "geboren": "24.11.1983", "info": "geb. Holl. Heirat 14.09.2013 mit Tino Wieser (geb. 1975)." } }
+                        ]},
+                        { "name": "Gerhard Holl", "details": { "geboren": "31.03.1949", "gestorben": "11.02.2012", "info": "Heirat 09.05.1980 mit Marianne Wiessler (geb. 1953)." }, "children": [
+                            { "name": "Stephanie Englisch", "details": { "geboren": "27.10.1978", "info": "geb. Holl. Heirat 14.09.2006 mit Jochen Englisch (geb. 1977)." }, "children": [
+                                { "name": "Luisa Englisch", "details": { "geboren": "27.03.2009" } },
+                                { "name": "Sofia Englisch", "details": { "geboren": "28.05.2012" } }
+                            ]},
+                            { "name": "Christoph Holl", "details": { "geboren": "06.03.1987", "info": "Heirat mit Simone Grünenwald (geb. 1984)." } }
+                        ]},
+                        { "name": "Christa Koller", "details": { "geboren": "07.11.1951", "gestorben": "08.10.2012", "info": "geb. Holl. Heirat 08.09.1972 mit Sylvester Koller (geb. 1949)." }, "children": [
+                            { "name": "Thomas Koller", "details": { "geboren": "12.08.1973", "gestorben": "13.11.2003" } },
+                            { "name": "Steffen Koller", "details": { "geboren": "09.08.1975", "info": "Heirat 03.06.2011 mit Mareike geb. Maier (geb. 1981)." }, "children": [
+                                { "name": "Madita Pauline Koller", "details": { "geboren": "06.02.2013" } },
+                                { "name": "Elva Koller", "details": { "geboren": "01.12.2014", "info": "Info aus Stammbaum Koller." } }
+                            ]}
+                        ]},
+                        { "name": "Irene Holl", "details": { "geboren": "27.04.1953", "gestorben": "17.02.2007" } },
+                        { "name": "Martin Holl", "details": { "geboren": "10.11.1958", "gestorben": "Juni 1959" } }
+                    ]
+                },
+                { "name": "Maria Holl", "details": { "geboren": "13.10.1911", "gestorben": "31.12.1911", "info": "Aus 1. Ehe" } },
+                { "name": "Eugen Holl", "details": { "geboren": "02.12.1911", "gestorben": "14.02.2008", "info": "Aus 1. Ehe" } },
+                { "name": "Klara Fischer", "details": { "geboren": "28.06.1914", "gestorben": "02.04.1959", "info": "geb. Holl, aus 1. Ehe. Heirat 04.04.1942 mit Robert Fischer (1904-1985)." }, "children": [
+                    { "name": "Irmgard Schmid", "details": { "geboren": "02.03.1944", "info": "geb. Fischer. Heirat 09.09.1966 mit Adalbert Schmid (geb. 1937)." }, "children": [
+                        { "name": "Cornelia Griephan", "details": { "geboren": "23.03.1966", "info": "geb. Schmid. Heirat 13.10.2001 mit Thomas Griephan (geb. 1967)." }, "children": [
+                            { "name": "Niklas Griephan", "details": { "geboren": "20.01.2003" } },
+                            { "name": "Jonas Griephan", "details": { "geboren": "06.11.2004" } }
+                        ]},
+                        { "name": "Annette Schmid", "details": { "geboren": "29.03.1967", "info": "Heirat 09.05.2003 mit Christian Köstlin (geb. 1962)." } },
+                        { "name": "Marcus Oliver Schmid", "details": { "geboren": "06.11.1968", "info": "Heirat 05.11.2003 mit Hui-Wen Hsu (geb. 1969)." } }
+                    ]},
+                    { "name": "Gerhard Fischer", "details": { "geboren": "19.04.1948", "info": "Heirat 31.03.1980 mit Susanna Fritsche (geb. 1950)." }, "children": [
+                        { "name": "Isabella Fischer", "details": { "geboren": "13.05.1982" } }
+                    ]}
+                ]},
+                // Kinder aus 2. Ehe
+                { "name": "Emilie Stähle", "details": { "geboren": "15.07.1919", "gestorben": "18.08.2012", "info": "geb. Holl, aus 2. Ehe. Heirat 12.05.1950 mit Alfred Stähle (1911-1962)." }, "children": [
+                    { "name": "Ingrid Stähle", "details": { "geboren": "04.06.1951", "info": "1. Heirat 11.08.1978 mit Dr. Lothar Rummel (gest. 1993). 2. Heirat 02.10.1997 mit Bernhard Maile." } }
+                ]},
+                { "name": "Otto Holl", "details": { "geboren": "27.01.1921", "gestorben": "26.01.2000", "info": "Aus 2. Ehe. Heirat 20.05.1949 mit Maria Einsele (1922-1993)." }, "children": [
+                    { "name": "Martin Holl", "details": { "geboren": "08.06.1950", "info": "Heirat 02.04.1976 mit Gudrun Kloepfer (geb. 1955)." }, "children": [
+                        { "name": "Silke Giss", "details": { "geboren": "13.09.1976", "info": "geb. Holl. Heirat 20.06.2003 mit Timo Giss (geb. 1976)." }, "children": [
+                            { "name": "Anna-Lena Giss", "details": { "geboren": "25.05.2004" } },
+                            { "name": "David Giss", "details": { "geboren": "09.08.2005" } },
+                            { "name": "Lukas Giss", "details": { "geboren": "07.11.2007" } }
+                        ]},
+                        { "name": "Miriam Holl", "details": { "geboren": "20.08.1980", "info": "Heirat mit Andreas Förster (geb. 1976)." }, "children": [
+                            { "name": "Klara Holl", "details": { "geboren": "18.08.2010" } },
+                            { "name": "Naya Holl", "details": { "geboren": "28.03.2012" } }
+                        ]},
+                        { "name": "Michael Holl", "details": { "geboren": "03.07.1983" } },
+                        { "name": "Andrea Holl", "details": { "geboren": "06.07.1983" } }
+                    ]},
+                    { "name": "Ernst Holl", "details": { "geboren": "21.02.1956" } },
+                    { "name": "Herbert Holl", "details": { "geboren": "30.01.1958", "info": "Heirat 13.10.1983 mit Ingrid Stark (geb. 1958)." }, "children": [
+                        { "name": "Kathrin Geller", "details": { "geboren": "16.10.1984", "info": "geb. Holl. Heirat 24.02.2012 mit Matthias Geller (geb. 1978)." }, "children": [
+                            { "name": "Elija Geller", "details": { "geboren": "07.07.2012" } }
+                        ]},
+                        { "name": "Tobias Holl", "details": { "geboren": "14.11.1985" } },
+                        { "name": "Johannes Holl", "details": { "geboren": "18.07.1990" } }
+                    ]}
+                ]},
+                { "name": "Pauline Kleinbach", "details": { "geboren": "04.06.1922", "info": "geb. Holl, aus 2. Ehe. Heirat 23.10.1953 mit Hermann Kleinbach jun. (1922-2001)." }, "children": [
+                    { "name": "Eberhard Kleinbach", "details": { "geboren": "31.08.1954" } },
+                    { "name": "Helmut Kleinbach", "details": { "geboren": "21.03.1956", "info": "Heirat 01.09.1978 mit Irene Hänzler (geb. 1955)." }, "children": [
+                        { "name": "Christina Kleinbach", "details": { "geboren": "13.08.1981" } },
+                        { "name": "Matthias Kleinbach", "details": { "geboren": "18.04.1985" } }
+                    ]},
+                    { "name": "Wilfried Kleinbach", "details": { "geboren": "29.09.1963", "gestorben": "13.05.2003" } }
+                ]}
+            ]
+        };
+        
+        const ahnentafelData = {
+            "name": "Steffen Koller",
+            "details": { "geboren": "09.08.1975", "info": "Heirat 03.06.2011 mit Mareike geb. Maier (geb. 1981). Kinder: Madita Pauline, Elva." },
+            "children": [ // In this view, "children" are the parents.
+                {
+                    "name": "Sylvester Koller", "details": { "geboren": "08.04.1949", "info": "Vater. Sohn von Franz Xaver Schreiner und Maria Hubert." },
+                    "children": [ // Paternal Grandparents
+                        { "name": "Franz Xaver Schreiner", "details": { "geboren": "1919", "gestorben": "1972" } },
+                        {
+                            "name": "Maria Hubert", "details": { "geboren": "19.04.1928", "info": "geb. Koller." },
+                            "children": [ // Paternal Great-Grandparents
+                                {
+                                    "name": "Sylvester Koller", "details": { "geboren": "23.07.1893", "gestorben": "24.03.1974" },
+                                    "children": [ // Paternal G-G-Grandparents
+                                        { "name": "Georg Koller", "details": { "geboren": "22.07.1843", "gestorben": "21.07.1928" } },
+                                        { "name": "Therese Röck", "details": { "geboren": "1850", "gestorben": "1923" } }
+                                    ]
+                                },
+                                { "name": "Mathilde Hinkofer", "details": { "geboren": "1895", "gestorben": "1974" } }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Christa Koller", "details": { "geboren": "07.11.1951", "gestorben": "08.10.2012", "info": "Mutter, geb. Holl." },
+                    "children": [ // Maternal Grandparents
+                        {
+                            "name": "Ernst Holl", "details": { "geboren": "21.06.1910", "gestorben": "24.10.1974" },
+                            "children": [ // Maternal Great-Grandparents
+                                { "name": "Georg Holl", "details": { "geboren": "15.06.1874", "gestorben": "28.02.1947" } },
+                                { "name": "Pauline Betz", "details": { "geboren": "11.07.1881", "gestorben": "12.02.1918", "info": "1. Ehefrau von Georg Holl." } }
+                            ]
+                        },
+                        { "name": "Anna Fischer", "details": { "geboren": "04.08.1923", "gestorben": "27.11.2004" } }
+                    ]
+                }
+            ]
+        };
 
+        const dataSets = {
+            koller: { data: kollerData, title: "Stammbaum Familie Koller" },
+            holl: { data: hollData, title: "Stammbaum Familie Holl" },
+            ahnentafel: { data: ahnentafelData, title: "Ahnentafel Steffen Koller" }
+        };
+
+        // --- D3.js Visualization Code ---
+        
+        let svg, g, zoom, tooltip, tooltipName, tooltipDetails;
+        let root, flatData, selectedNode, initialTransform;
+        let maxVisibleDepth = 1;
+        let switchToVerticalAtDepth = 99; 
         const width = window.innerWidth;
         const height = window.innerHeight;
-        
-        const treeLayout = d3.tree().nodeSize([160, 220]); // Increased horizontal node spacing
+        const treeLayout = d3.tree().nodeSize([160, 220]);
 
-        const svg = d3.select("#tree-container").append("svg")
-            .attr("width", width)
-            .attr("height", height);
+        function initializeVisualization() {
+            d3.select("#tree-container").html('');
+            
+            svg = d3.select("#tree-container").append("svg")
+                .attr("width", width)
+                .attr("height", height);
 
-        const g = svg.append("g");
+            g = svg.append("g");
 
-        const tooltip = d3.select("#tooltip");
-        const tooltipName = d3.select("#tooltip-name");
-        const tooltipDetails = d3.select("#tooltip-details");
+            tooltip = d3.select("#tooltip");
+            tooltipName = d3.select("#tooltip-name");
+            tooltipDetails = d3.select("#tooltip-details");
 
-        const zoom = d3.zoom()
-            .scaleExtent([0.1, 3])
-            .on("zoom", (event) => {
-                g.attr("transform", event.transform);
-            });
-
-        svg.call(zoom);
-
-        let switchToVerticalAtDepth = 99; // Default to all horizontal
-        let maxVisibleDepth = 1; // Default visible depth set to 1
-        let flatData = [];
-        let selectedNode = null; // To keep track of the selected node
-        let initialTransform; // To store the initial transform
-
-        function findMaxDepth(node) {
-            let max = node.depth;
-            if (node.children) {
-                node.children.forEach(child => {
-                    max = Math.max(max, findMaxDepth(child));
+            zoom = d3.zoom()
+                .scaleExtent([0.1, 3])
+                .on("zoom", (event) => {
+                    g.attr("transform", event.transform);
                 });
-            }
-            return max;
+
+            svg.call(zoom);
         }
 
-        function createLayoutControls(maxDepth) {
+        function createControls(maxDepth) {
             const container = d3.select("#controls-container");
-            container.html(''); // Clear
+            container.html(''); 
 
-            const header = container.append('div').attr('class', 'controls-header');
-            header.append('span').text('Filter & Steuerung');
+            const header = container.append('div').attr('class', 'panel-header');
+            header.append('span').text('Ansicht & Steuerung');
             header.append('svg').attr('viewBox', '0 0 20 20').attr('fill', 'currentColor')
               .html(`<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />`);
-
-            const content = container.append('div').attr('class', 'controls-content');
+            
+            const content = container.append('div').attr('class', 'panel-content');
 
             header.on('click', () => {
                 container.classed('collapsed', !container.classed('collapsed'));
                 content.classed('collapsed', !content.classed('collapsed'));
             });
+
+            const viewGroup = content.append('div').attr('class', 'control-group');
+            viewGroup.append('label').text('Ansicht wählen:');
+            const viewSwitcher = viewGroup.append('div').attr('class', 'view-switcher grid grid-cols-3 gap-1');
             
-            // --- Search Control ---
-            const searchGroup = content.append('div').attr('class', 'control-group').attr('id', 'search-container');
-            searchGroup.append('label').attr('for', 'search-input').text('Suche:');
+            viewSwitcher.append('div').html('<input type="radio" id="view-koller" name="view" value="koller" checked><label for="view-koller">Koller</label>');
+            viewSwitcher.append('div').html('<input type="radio" id="view-holl" name="view" value="holl"><label for="view-holl">Holl</label>');
+            viewSwitcher.append('div').html('<input type="radio" id="view-ahnentafel" name="view" value="ahnentafel"><label for="view-ahnentafel">Ahnentafel</label>');
+
+            d3.selectAll('input[name="view"]').on('change', function() {
+                renderTree(this.value);
+            });
+
+            const searchGroup = content.append('div').attr('class', 'control-group mt-2').attr('id', 'search-container');
+            searchGroup.append('label').attr('for', 'search-input').text('Person suchen:');
             searchGroup.append('input')
                 .attr('type', 'text')
                 .attr('id', 'search-input')
                 .attr('placeholder', 'Name eingeben...');
             searchGroup.append('div').attr('id', 'search-results');
-            
-            // --- Depth Filter Control ---
-            const depthGroup = content.append('div').attr('class', 'control-group');
-            depthGroup.append('label').attr('for', 'depth-switch').text('Ebenen anzeigen:');
-            const depthSelect = depthGroup.append('select')
-                .attr('id', 'depth-switch')
+
+            const depthGroup = content.append('div').attr('class', 'control-group mt-2');
+            const depthRow = depthGroup.append('div').attr('class', 'control-row');
+            depthRow.append('label').attr('for', 'depth-switch').text('Ebenen anzeigen:');
+            const depthSelect = depthRow.append('select').attr('id', 'depth-switch')
                 .on('change', function() {
                     maxVisibleDepth = parseInt(this.value);
                     setTreeVisibility(root, maxVisibleDepth);
@@ -632,11 +866,11 @@
                 depthSelect.append('option').attr('value', i).text(i)
                     .property('selected', i === maxVisibleDepth);
             }
-
-            // --- Simplified Layout Control ---
-            const layoutGroup = content.append('div').attr('class', 'control-group');
-            layoutGroup.append('label').attr('for', 'layout-switch').text('Vertikal ab Ebene:');
-            const layoutSelect = layoutGroup.append('select')
+            
+            const layoutGroup = content.append('div').attr('class', 'control-group mt-2');
+            const layoutRow = layoutGroup.append('div').attr('class', 'control-row');
+            layoutRow.append('label').attr('for', 'layout-switch').text('Vertikal ab Ebene:');
+            const layoutSelect = layoutRow.append('select')
                 .attr('id', 'layout-switch')
                 .on('change', function() {
                     switchToVerticalAtDepth = parseInt(this.value);
@@ -647,13 +881,16 @@
                 layoutSelect.append('option').attr('value', i).text(i);
             }
             layoutSelect.append('option').attr('value', 99).text('Nie').property('selected', true);
-
-            // --- Action Buttons ---
+            
             const buttonGroup = content.append('div').attr('class', 'control-group mt-2 flex-col space-y-2');
             buttonGroup.append('button').attr('id', 'reset-button').text('Ansicht zurücksetzen');
-            buttonGroup.append('button').attr('id', 'zoom-button').text('Auf Auswahl zoomen');
-        }
+            buttonGroup.append('button').attr('id', 'zoom-button').text('Auf Auswahl zoomen').attr('class', 'primary');
 
+            d3.select('#search-input').on('input', handleSearch);
+            d3.select('#reset-button').on('click', handleReset);
+            d3.select('#zoom-button').on('click', handleZoomToSelection);
+        }
+        
         function setTreeVisibility(node, depth) {
             if (!node.children && node._children) {
                  node.children = node._children;
@@ -667,32 +904,21 @@
                 node.children.forEach(c => setTreeVisibility(c, depth));
             }
         }
-        
-        const tempRoot = d3.hierarchy(familyData);
-        const maxDataDepth = findMaxDepth(tempRoot);
-        createLayoutControls(maxDataDepth);
 
-        const root = d3.hierarchy(familyData, d => d.children);
-        
-        root.descendants().forEach((d, i) => {
-            d.id = i;
-            d._children = d.children;
-        });
-
-        // --- Enhanced flat data for search ---
-        flatData = root.descendants();
-        flatData.forEach(d => {
-            let spouseName = '';
-            const info = d.data.details?.info;
-            if (info) {
-                const match = info.match(/Heirat.*?mit\s(.*?)(?:\s\(|\.|$)/);
-                if (match && match[1]) {
-                    d.spouseName = match[1].trim();
-                }
+        function findMaxDepth(node) {
+            let max = node.depth;
+            if (node.children) {
+                node.children.forEach(child => {
+                    max = Math.max(max, findMaxDepth(child));
+                });
             }
-        });
-        
-        setTreeVisibility(root, maxVisibleDepth);
+            if (node._children) {
+                 node._children.forEach(child => {
+                    max = Math.max(max, findMaxDepth(child));
+                });
+            }
+            return max;
+        }
 
         function getTreeExtent(node) {
             let minX = node.x;
@@ -705,7 +931,7 @@
                 });
             }
             if (node.depth >= switchToVerticalAtDepth) {
-                maxX += 100; // Approximate width of text
+                maxX += 100;
             }
             return [minX, maxX];
         }
@@ -769,7 +995,7 @@
                     node.x = (node.children[0].x + node.children[node.children.length - 1].x) / 2;
                 }
 
-                const horizontalGap = 60; // Increased gap
+                const horizontalGap = 60;
                 for (let i = 1; i < node.children.length; i++) {
                     const leftSubtree = node.children[i - 1];
                     const rightSubtree = node.children[i];
@@ -804,7 +1030,7 @@
                 .attr("y", d => (d.depth < switchToVerticalAtDepth) ? 30 : 5)
                 .attr("text-anchor", d => (d.depth < switchToVerticalAtDepth) ? "middle" : "start");
 
-            nodeUpdate.select("circle").attr("r", 10)
+            nodeUpdate.select("circle").transition().duration(duration).attr("r", 10)
                 .style("fill", d => d._children ? "#0ea5e9" : "#fff");
             
             const nodeExit = node.exit().transition().duration(duration)
@@ -831,17 +1057,16 @@
                 }).remove();
             
             highlightBranch(selectedNode);
-
             nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
         }
-
+        
         function elbow(s, d, depth) {
             if (depth >= switchToVerticalAtDepth) {
                 return `M${s.x},${s.y} L${s.x},${d.y} L${d.x},${d.y}`;
             }
             return `M${s.x},${s.y}V${(s.y + d.y) / 2}H${d.x}V${d.y}`;
         }
-        
+
         function highlightBranch(d) {
             d3.selectAll('.node').classed('highlight descendant-highlight', false);
             d3.selectAll('.link').classed('descendant-highlight', false);
@@ -864,16 +1089,15 @@
         }
 
         function click(d) {
-            selectedNode = d; 
-
+            selectedNode = d;
             if (d.children) {
                 d._children = d.children;
                 d.children = null;
-                highlightBranch(d.parent); 
-                selectedNode = d.parent; 
+                highlightBranch(d.parent);
+                selectedNode = d.parent;
             } else {
                 d.children = d._children;
-                if (d.children) {
+                 if (d.children) {
                     d.children.forEach(child => {
                         if (child.children) {
                             child._children = child.children;
@@ -900,8 +1124,18 @@
             }
             tooltipName.text(d.data.name);
             tooltipDetails.html(detailsHTML || 'Keine weiteren Details verfügbar.');
-            tooltip.style("left", (event.pageX + 15) + "px")
-                   .style("top", (event.pageY - 28) + "px");
+            
+            const tooltipWidth = tooltip.node().offsetWidth;
+            const tooltipHeight = tooltip.node().offsetHeight;
+            let left = event.pageX + 15;
+            let top = event.pageY - 28;
+            if (left + tooltipWidth > window.innerWidth) {
+                left = event.pageX - tooltipWidth - 15;
+            }
+            if (top + tooltipHeight > window.innerHeight) {
+                top = event.pageY - tooltipHeight;
+            }
+            tooltip.style("left", left + "px").style("top", top + "px");
         }
 
         function mouseout(event, d) {
@@ -910,36 +1144,42 @@
 
         function showPathAndCenter(d) {
             selectedNode = d;
-            let current = d;
-            while(current.parent) {
-                current = current.parent;
-                if(current._children) {
-                    current.children = current._children;
+            let ancestors = d.ancestors();
+            
+            root.descendants().forEach(node => {
+                if (ancestors.indexOf(node) < 0 && node.children) {
+                    node._children = node.children;
+                    node.children = null;
                 }
-            }
+            });
+
+            ancestors.forEach(anc => {
+                if(anc._children) {
+                    anc.children = anc._children;
+                }
+            });
+
             update(d);
 
             setTimeout(() => {
+                const scale = 0.8;
                 const transform = d3.zoomIdentity
-                    .translate(width / 2 - d.x * 0.8, height / 2 - d.y * 0.8)
-                    .scale(0.8);
+                    .translate(width / 2 - d.x * scale, height / 2 - d.y * scale)
+                    .scale(scale);
                 
                 svg.transition().duration(750).call(zoom.transform, transform);
                 highlightBranch(d);
             }, 550);
         }
 
-        d3.select('#search-input').on('input', function(event) {
+        function handleSearch(event) {
             const value = this.value.toLowerCase();
             const resultsContainer = d3.select('#search-results');
             resultsContainer.html('');
 
-            if (value.length < 3) return;
+            if (value.length < 2) return;
 
-            const results = flatData.filter(d => 
-                d.data.name.toLowerCase().includes(value) || 
-                (d.spouseName && d.spouseName.toLowerCase().includes(value))
-            );
+            const results = flatData.filter(d => d.data.name.toLowerCase().includes(value));
             
             results.forEach(d => {
                 resultsContainer.append('div')
@@ -951,38 +1191,68 @@
                         this.value = '';
                     });
             });
-        });
-
-        // --- Initial Draw ---
-        root.x0 = width / 2;
-        root.y0 = 0;
-        update(root);
+        }
         
-        initialTransform = d3.zoomIdentity.translate(width / 2, 80).scale(0.8);
-        svg.call(zoom.transform, initialTransform);
+        function handleReset() {
+            const currentView = d3.select('input[name="view"]:checked').node().value;
+            switchToVerticalAtDepth = 99;
+            renderTree(currentView);
+        }
 
-        // --- Button Event Listeners ---
-        d3.select('#reset-button').on('click', () => {
-            maxVisibleDepth = 1;
-            d3.select('#depth-switch').property('value', 1);
-            setTreeVisibility(root, 1);
-            selectedNode = null;
-            highlightBranch(null);
-            update(root);
-            svg.transition().duration(750).call(zoom.transform, initialTransform);
-        });
-
-        d3.select('#zoom-button').on('click', () => {
+        function handleZoomToSelection() {
             if (selectedNode) {
+                const scale = 0.8;
                 const transform = d3.zoomIdentity
-                    .translate(width / 2 - selectedNode.x * 0.8, height / 2 - selectedNode.y * 0.8)
-                    .scale(0.8);
+                    .translate(width / 2 - selectedNode.x * scale, height / 2 - selectedNode.y * scale)
+                    .scale(scale);
                 svg.transition().duration(750).call(zoom.transform, transform);
             }
-        });
+        }
+
+        function renderTree(viewKey) {
+            const selectedDataSet = dataSets[viewKey];
+            d3.select('#main-title').text(selectedDataSet.title);
+
+            initializeVisualization();
+            
+            selectedNode = null;
+            maxVisibleDepth = (viewKey === 'ahnentafel') ? 2 : 1;
+
+            root = d3.hierarchy(selectedDataSet.data, d => d.children);
+            
+            const tempRootForDepth = d3.hierarchy(JSON.parse(JSON.stringify(selectedDataSet.data)), d => d.children);
+            const maxDataDepth = findMaxDepth(tempRootForDepth);
+            
+            createControls(maxDataDepth);
+            
+            d3.select(`#view-${viewKey}`).property('checked', true);
+            d3.select('#depth-switch').property('value', maxVisibleDepth);
+            d3.select('#layout-switch').property('value', switchToVerticalAtDepth);
+
+            root.descendants().forEach((d, i) => {
+                d.id = `node-${viewKey}-${i}`;
+                d._children = d.children;
+            });
+            
+            flatData = root.descendants();
+            setTreeVisibility(root, maxVisibleDepth);
+
+            root.x0 = width / 2;
+            root.y0 = 0;
+            update(root);
+            
+            const yOffset = (viewKey === 'ahnentafel') ? height / 3 : 80;
+            const scale = (viewKey === 'ahnentafel') ? 0.6 : 0.7;
+            initialTransform = d3.zoomIdentity.translate(width / 2, yOffset).scale(scale);
+            svg.call(zoom.transform, initialTransform);
+        }
+
+        // Initial render
+        renderTree('koller');
 
         window.addEventListener('resize', () => {
-            svg.attr('width', window.innerWidth).attr('height', window.innerHeight);
+            const currentView = d3.select('input[name="view"]:checked').node().value;
+            renderTree(currentView);
         });
 
     </script>
