@@ -260,8 +260,6 @@
 
     <script>
         // --- DATA SECTION ---
-        // This section contains all the genealogical data for both families.
-        
         const kollerData = {
             "name": "Johann Koller", "details": { "geboren": "1807", "gestorben": "02.09.1881", "info": "Heirat 1831 mit Franziska geb. Müller (1807-1892)." },
             "children": [
@@ -739,60 +737,104 @@
             ]
         };
         
-        const ahnentafelData = {
-            "name": "Steffen Koller",
-            "details": { "geboren": "09.08.1975", "info": "Heirat 03.06.2011 mit Mareike geb. Maier (geb. 1981). Kinder: Madita Pauline, Elva." },
-            "children": [ // In this view, "children" are the parents.
-                {
-                    "name": "Sylvester Koller", "details": { "geboren": "08.04.1949", "info": "Vater. Sohn von Franz Xaver Schreiner und Maria Hubert." },
-                    "children": [ // Paternal Grandparents
-                        { "name": "Franz Xaver Schreiner", "details": { "geboren": "1919", "gestorben": "1972" } },
-                        {
-                            "name": "Maria Hubert", "details": { "geboren": "19.04.1928", "info": "geb. Koller." },
-                            "children": [ // Paternal Great-Grandparents
-                                {
-                                    "name": "Sylvester Koller", "details": { "geboren": "23.07.1893", "gestorben": "24.03.1974" },
-                                    "children": [ // Paternal G-G-Grandparents
-                                        { "name": "Georg Koller", "details": { "geboren": "22.07.1843", "gestorben": "21.07.1928" } },
-                                        { "name": "Therese Röck", "details": { "geboren": "1850", "gestorben": "1923" } }
-                                    ]
-                                },
-                                { "name": "Mathilde Hinkofer", "details": { "geboren": "1895", "gestorben": "1974" } }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "name": "Christa Koller", "details": { "geboren": "07.11.1951", "gestorben": "08.10.2012", "info": "Mutter, geb. Holl." },
-                    "children": [ // Maternal Grandparents
-                        {
-                            "name": "Ernst Holl", "details": { "geboren": "21.06.1910", "gestorben": "24.10.1974" },
-                            "children": [ // Maternal Great-Grandparents
-                                { "name": "Georg Holl", "details": { "geboren": "15.06.1874", "gestorben": "28.02.1947" } },
-                                { "name": "Pauline Betz", "details": { "geboren": "11.07.1881", "gestorben": "12.02.1918", "info": "1. Ehefrau von Georg Holl." } }
-                            ]
-                        },
-                        { "name": "Anna Fischer", "details": { "geboren": "04.08.1923", "gestorben": "27.11.2004" } }
-                    ]
-                }
-            ]
-        };
-
         const dataSets = {
             koller: { data: kollerData, title: "Stammbaum Familie Koller" },
             holl: { data: hollData, title: "Stammbaum Familie Holl" },
-            ahnentafel: { data: ahnentafelData, title: "Ahnentafel Steffen Koller" }
         };
 
         // --- D3.js Visualization Code ---
         
         let svg, g, zoom, tooltip, tooltipName, tooltipDetails;
         let root, flatData, selectedNode, initialTransform;
+        let allPeople = [];
+        let personMap = new Map();
         let maxVisibleDepth = 1;
         let switchToVerticalAtDepth = 99; 
         const width = window.innerWidth;
         const height = window.innerHeight;
         const treeLayout = d3.tree().nodeSize([160, 220]);
+
+        function initializeMasterData() {
+            const kollerRoot = d3.hierarchy(kollerData);
+            const hollRoot = d3.hierarchy(hollData);
+            allPeople = [];
+            personMap.clear();
+
+            kollerRoot.descendants().forEach(d => {
+                const uniqueId = `${d.data.name}-${d.data.details.geboren || ''}`;
+                if (!personMap.has(uniqueId)) {
+                    personMap.set(uniqueId, d);
+                    allPeople.push(d);
+                }
+            });
+            hollRoot.descendants().forEach(d => {
+                const uniqueId = `${d.data.name}-${d.data.details.geboren || ''}`;
+                if (!personMap.has(uniqueId)) {
+                    personMap.set(uniqueId, d);
+                    allPeople.push(d);
+                }
+            });
+
+            allPeople.sort((a, b) => a.data.name.localeCompare(b.data.name));
+        }
+
+        function parseSpouseName(info) {
+            if (!info) return null;
+            const patterns = [
+                /Heirat.*?mit\s(.*?)(?:\s\(|\.|$)/,
+                /Partnerin\s(.*?)(?:\s\(|\.|$)/,
+                /Lebensgefährte\s(.*?)(?:\s\(|\.|$)/
+            ];
+            for (const pattern of patterns) {
+                const match = info.match(pattern);
+                if (match && match[1]) {
+                    // Clean up name from "geb. Xyz"
+                    return match[1].replace(/geb\.\s\w+/g, '').trim();
+                }
+            }
+            return null;
+        }
+
+        function generateAhnentafel(startNode) {
+            if (!startNode) return null;
+
+            function buildAncestors(sourceNode, maxDepth = 4, visited = new Set()) {
+                const uniqueId = `${sourceNode.data.name}-${sourceNode.data.details.geboren || ''}`;
+                if (!sourceNode || maxDepth <= 0 || visited.has(uniqueId)) {
+                    return null;
+                }
+                visited.add(uniqueId);
+
+                const ahnenNode = {
+                    name: sourceNode.data.name,
+                    details: sourceNode.data.details,
+                    children: []
+                };
+
+                const parent1Node = sourceNode.parent;
+                if (parent1Node) {
+                    const parent1Ahnen = buildAncestors(parent1Node, maxDepth - 1, new Set(visited));
+                    if(parent1Ahnen) ahnenNode.children.push(parent1Ahnen);
+
+                    const spouseName = parseSpouseName(parent1Node.data.details.info);
+                    if (spouseName) {
+                        // Find the spouse node in the master list
+                        const spouseNode = allPeople.find(p => p.data.name.includes(spouseName));
+                        if (spouseNode) {
+                             const parent2Ahnen = buildAncestors(spouseNode, maxDepth - 1, new Set(visited));
+                             if(parent2Ahnen) ahnenNode.children.push(parent2Ahnen);
+                        } else {
+                            // Spouse not in the main trees, add as a leaf
+                            ahnenNode.children.push({ name: spouseName, details: {}, children: [] });
+                        }
+                    }
+                }
+                return ahnenNode;
+            }
+
+            return buildAncestors(startNode);
+        }
+
 
         function initializeVisualization() {
             d3.select("#tree-container").html('');
@@ -842,6 +884,26 @@
 
             d3.selectAll('input[name="view"]').on('change', function() {
                 renderTree(this.value);
+            });
+
+            const ahnentafelGroup = content.append('div').attr('class', 'control-group').attr('id', 'ahnentafel-selector').style('display', 'none');
+            ahnentafelGroup.append('label').attr('for', 'ahnentafel-person').text('Ahnentafel für:');
+            const ahnentafelSelect = ahnentafelGroup.append('select').attr('id', 'ahnentafel-person');
+            
+            allPeople.forEach(person => {
+                const uniqueId = `${person.data.name}-${person.data.details.geboren || ''}`;
+                ahnentafelSelect.append('option')
+                    .attr('value', uniqueId)
+                    .text(person.data.name);
+            });
+            
+            ahnentafelSelect.on('change', function() {
+                const selectedId = this.value;
+                const startNode = personMap.get(selectedId);
+                const ahnentafelData = generateAhnentafel(startNode);
+                if (ahnentafelData) {
+                    renderTree('ahnentafel', ahnentafelData);
+                }
             });
 
             const searchGroup = content.append('div').attr('class', 'control-group mt-2').attr('id', 'search-container');
@@ -1209,18 +1271,43 @@
             }
         }
 
-        function renderTree(viewKey) {
-            const selectedDataSet = dataSets[viewKey];
-            d3.select('#main-title').text(selectedDataSet.title);
+        function renderTree(viewKey, customData = null) {
+            let data, title;
+            const ahnentafelSelector = d3.select('#ahnentafel-selector');
+            const searchSelector = d3.select('#search-container');
+
+
+            if (viewKey === 'ahnentafel') {
+                title = "Ahnentafel";
+                if(ahnentafelSelector.node()) ahnentafelSelector.style('display', 'block');
+                if(searchSelector.node()) searchSelector.style('display', 'none');
+                if (customData) {
+                    data = customData;
+                    title = `Ahnentafel ${data.name}`;
+                } else {
+                    const steffenNode = allPeople.find(p => p.data.name === "Steffen Koller");
+                    data = generateAhnentafel(steffenNode);
+                    if(ahnentafelSelector.node()) {
+                        d3.select('#ahnentafel-person').property('value', `${steffenNode.data.name}-${steffenNode.data.details.geboren || ''}`);
+                    }
+                }
+            } else {
+                if(ahnentafelSelector.node()) ahnentafelSelector.style('display', 'none');
+                if(searchSelector.node()) searchSelector.style('display', 'block');
+                const selectedDataSet = dataSets[viewKey];
+                data = selectedDataSet.data;
+                title = selectedDataSet.title;
+            }
+            d3.select('#main-title').text(title);
 
             initializeVisualization();
             
             selectedNode = null;
-            maxVisibleDepth = (viewKey === 'ahnentafel') ? 2 : 1;
+            maxVisibleDepth = (viewKey === 'ahnentafel') ? 4 : 1;
 
-            root = d3.hierarchy(selectedDataSet.data, d => d.children);
+            root = d3.hierarchy(data, d => d.children);
             
-            const tempRootForDepth = d3.hierarchy(JSON.parse(JSON.stringify(selectedDataSet.data)), d => d.children);
+            const tempRootForDepth = d3.hierarchy(JSON.parse(JSON.stringify(data)), d => d.children);
             const maxDataDepth = findMaxDepth(tempRootForDepth);
             
             createControls(maxDataDepth);
@@ -1228,6 +1315,13 @@
             d3.select(`#view-${viewKey}`).property('checked', true);
             d3.select('#depth-switch').property('value', maxVisibleDepth);
             d3.select('#layout-switch').property('value', switchToVerticalAtDepth);
+             if (viewKey === 'ahnentafel') {
+                const startNodeId = `${data.name}-${data.details.geboren || ''}`;
+                d3.select('#ahnentafel-person').property('value', startNodeId);
+                d3.select('#ahnentafel-selector').style('display', 'block');
+                d3.select('#search-container').style('display', 'none');
+            }
+
 
             root.descendants().forEach((d, i) => {
                 d.id = `node-${viewKey}-${i}`;
@@ -1247,7 +1341,8 @@
             svg.call(zoom.transform, initialTransform);
         }
 
-        // Initial render
+        // --- Initial Setup ---
+        initializeMasterData();
         renderTree('koller');
 
         window.addEventListener('resize', () => {
