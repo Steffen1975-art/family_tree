@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interaktiver Stammbaum - Familien Koller & Holl</title>
+    <title>Interaktiver Stammbaum - Familien Koller & Holl & Maier</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -605,7 +605,9 @@
                         ]},
                         { "name": "Anna Fischer", "details": { "geboren": "27.01.1950", "info": "geb. Holl. Heirat 02.07.1971 mit Alois Fischer (geb. 1947)." }, "children": [
                             { "name": "Richard Fischer", "details": { "geboren": "15.04.1980", "info": "Heirat 20.08.2010 mit Franziska Schindler (geb. 1985)." }, "children": [
-                                { "name": "Korbinian Fischer", "details": { "geboren": "04.12.2010" } }
+                                { "name": "Korbinian Fischer", "details": { "geboren": "04.12.2010" }, "children": [
+                                    { "name": "Bennett John Fischer", "details": { "geboren": "12.02.2018" } }
+                                ]}
                             ]},
                             { "name": "Kastulus Fischer-Hagl", "details": { "geboren": "20.10.1982" } }
                         ]}
@@ -664,7 +666,10 @@
                             { "name": "Susanne Casper", "details": { "geboren": "27.01.1981", "info": "geb. Holl. Heirat 05.05.2007 mit Klaus Casper (geb. 1971)." }, "children": [
                                 { "name": "Alexander Casper", "details": { "geboren": "03.05.2010" } }
                             ]},
-                            { "name": "Michaela Wieser", "details": { "geboren": "24.11.1983", "info": "geb. Holl. Heirat 14.09.2013 mit Tino Wieser (geb. 1975)." } }
+                            { "name": "Michaela Wieser", "details": { "geboren": "24.11.1983", "info": "geb. Holl. Heirat 14.09.2013 mit Tino Wieser (geb. 1975)." }, "children": [
+                                { "name": "Bennett Wieser", "details": { "geboren": "14.10.2014" } },
+                                { "name": "John Wieser", "details": { "geboren": "01.01.2018" } }
+                            ]}
                         ]},
                         { "name": "Gerhard Holl", "details": { "geboren": "31.03.1949", "gestorben": "11.02.2012", "info": "Heirat 09.05.1980 mit Marianne Wiessler (geb. 1953)." }, "children": [
                             { "name": "Stephanie Englisch", "details": { "geboren": "27.10.1978", "info": "geb. Holl. Heirat 14.09.2006 mit Jochen Englisch (geb. 1977)." }, "children": [
@@ -708,7 +713,8 @@
                         { "name": "Silke Giss", "details": { "geboren": "13.09.1976", "info": "geb. Holl. Heirat 20.06.2003 mit Timo Giss (geb. 1976)." }, "children": [
                             { "name": "Anna-Lena Giss", "details": { "geboren": "25.05.2004" } },
                             { "name": "David Giss", "details": { "geboren": "09.08.2005" } },
-                            { "name": "Lukas Giss", "details": { "geboren": "07.11.2007" } }
+                            { "name": "Lukas Giss", "details": { "geboren": "07.11.2007" } },
+                            { "name": "Jannes Giss", "details": { "geboren": "27.04.2015" } }
                         ]},
                         { "name": "Miriam Holl", "details": { "geboren": "20.08.1980", "info": "Heirat mit Andreas Förster (geb. 1976)." }, "children": [
                             { "name": "Klara Holl", "details": { "geboren": "18.08.2010" } },
@@ -720,7 +726,9 @@
                     { "name": "Ernst Holl", "details": { "geboren": "21.02.1956" } },
                     { "name": "Herbert Holl", "details": { "geboren": "30.01.1958", "info": "Heirat 13.10.1983 mit Ingrid Stark (geb. 1958)." }, "children": [
                         { "name": "Kathrin Geller", "details": { "geboren": "16.10.1984", "info": "geb. Holl. Heirat 24.02.2012 mit Matthias Geller (geb. 1978)." }, "children": [
-                            { "name": "Elija Geller", "details": { "geboren": "07.07.2012" } }
+                            { "name": "Elija Geller", "details": { "geboren": "07.07.2012" } },
+                            { "name": "Paulina Geller", "details": { "geboren": "12.04.2015" } },
+                            { "name": "Milo Geller", "details": { "geboren": "10.04.2017" } }
                         ]},
                         { "name": "Tobias Holl", "details": { "geboren": "14.11.1985" } },
                         { "name": "Johannes Holl", "details": { "geboren": "18.07.1990" } }
@@ -737,9 +745,115 @@
             ]
         };
         
+        const maierData = {
+            "name": "Familie Maier & Mögenthaler", "details": {"info": "Zusammenführung der Linien Maier und Mögenthaler."},
+            "children": [
+                {
+                    "name": "Reinhold & Rose Mögenthaler", "details": {},
+                    "children": [
+                        { "name": "Rose Maier", "details": {"info": "verh. mit Wolfgang Maier"}, 
+                            "children": [
+                                { "name": "Christof Maier", "details": {"info": "verh. mit Bärbel"}, 
+                                    "children": [
+                                        {"name": "Matthias Maier", "details": {}},
+                                        {"name": "Simon Maier", "details": {}},
+                                        {"name": "Katharina Maier", "details": {}}
+                                    ]
+                                },
+                                { "name": "Fabian Maier", "details": {"info": "verh. mit Silke"},
+                                    "children": [
+                                        {"name": "Yannik Maier", "details": {}},
+                                        {"name": "Tjorben Maier", "details": {}},
+                                        {"name": "Lennart Maier", "details": {}}
+                                    ]
+                                }
+                            ]
+                        },
+                        { "name": "Dagmar Maier", "details": {"info": "geb. Mögenthaler, verh. mit Rolf Maier"},
+                            "children": [
+                                { "name": "Melanie", "details": {"info": "verh. mit Jörg"},
+                                    "children": [
+                                        {"name": "Marlene", "details": {}},
+                                        {"name": "Viktoria", "details": {}},
+                                        {"name": "Julius", "details": {}},
+                                        {"name": "Benjamin", "details": {}}
+                                    ]
+                                },
+                                { "name": "Manuela", "details": {"info": "verh. mit Sebastian"},
+                                    "children": [
+                                        {"name": "Silas", "details": {}},
+                                        {"name": "Lilith", "details": {}},
+                                        {"name": "Eneas", "details": {}},
+                                        {"name": "Salome", "details": {}}
+                                    ]
+                                },
+                                { "name": "Maggy", "details": {"info": "verh. mit Christoph"},
+                                    "children": [
+                                        {"name": "Minna", "details": {}},
+                                        {"name": "Romi", "details": {}},
+                                        {"name": "Hedi", "details": {}}
+                                    ]
+                                },
+                                { "name": "Mareike Koller", "details": { "geboren": "18.11.1981", "info": "geb. Maier. Heirat 03.06.2011 mit Steffen Koller." },
+                                    "children": [
+                                        {"name": "Madita Koller", "details": {"geboren": "06.02.2013"}},
+                                        {"name": "Elva Koller", "details": {"geboren": "01.12.2014"}},
+                                        {"name": "Lida Koller", "details": {"geboren": "24.01.2018"}},
+                                        {"name": "Tore Koller", "details": {"geboren": "03.09.2020"}}
+                                    ]
+                                }
+                            ]
+                        },
+                        { "name": "Sandra Mauthe", "details": {"info": "geb. Mögenthaler, verh. mit Diethelm Mauthe"} },
+                        { "name": "Norwin Mögenthaler", "details": {"info": "verh. mit Rose"},
+                            "children": [
+                                {"name": "Bianca Mögenthaler", "details": {}},
+                                {"name": "Lutz Mögenthaler", "details": {}}
+                            ]
+                        },
+                        { "name": "Heike Koch", "details": {"info": "geb. Mögenthaler"},
+                            "children": [
+                                { "name": "Svenja", "details": {"info": "verh. mit Sven"},
+                                    "children": [
+                                        {"name": "Noel", "details": {}},
+                                        {"name": "Maileen", "details": {}},
+                                        {"name": "Feline", "details": {}},
+                                        {"name": "Elino", "details": {}}
+                                    ]
+                                },
+                                {"name": "Mario Koch", "details": {}}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Ernst & Berta Maier", "details": {},
+                    "children": [
+                        { "name": "Erwin Maier", "details": {"info": "verh. mit Elfriede"},
+                            "children": [
+                                { "name": "Sibylle", "details": {"info": "verh. mit Thorsten"},
+                                    "children": [
+                                        {"name": "Anna", "details": {}},
+                                        {"name": "Jakob", "details": {}}
+                                    ]
+                                },
+                                { "name": "Felix Maier", "details": {},
+                                    "children": [
+                                        {"name": "Emil Maier", "details": {}}
+                                    ]
+                                }
+                            ]
+                        },
+                        { "name": "Wolfgang Maier", "details": {"info": "verh. mit Rose Mögenthaler"} }
+                    ]
+                }
+            ]
+        };
+
         const dataSets = {
             koller: { data: kollerData, title: "Stammbaum Familie Koller" },
             holl: { data: hollData, title: "Stammbaum Familie Holl" },
+            maier: { data: maierData, title: "Stammbaum Familie Maier" }
         };
 
         // --- D3.js Visualization Code ---
@@ -757,22 +871,18 @@
         function initializeMasterData() {
             const kollerRoot = d3.hierarchy(kollerData);
             const hollRoot = d3.hierarchy(hollData);
+            const maierRoot = d3.hierarchy(maierData);
             allPeople = [];
             personMap.clear();
 
-            kollerRoot.descendants().forEach(d => {
-                const uniqueId = `${d.data.name}-${d.data.details.geboren || ''}`;
-                if (!personMap.has(uniqueId)) {
-                    personMap.set(uniqueId, d);
-                    allPeople.push(d);
-                }
-            });
-            hollRoot.descendants().forEach(d => {
-                const uniqueId = `${d.data.name}-${d.data.details.geboren || ''}`;
-                if (!personMap.has(uniqueId)) {
-                    personMap.set(uniqueId, d);
-                    allPeople.push(d);
-                }
+            [kollerRoot, hollRoot, maierRoot].forEach(rootNode => {
+                 rootNode.descendants().forEach(d => {
+                    const uniqueId = `${d.data.name}-${d.data.details.geboren || ''}`;
+                    if (!personMap.has(uniqueId)) {
+                        personMap.set(uniqueId, d);
+                        allPeople.push(d);
+                    }
+                });
             });
 
             allPeople.sort((a, b) => a.data.name.localeCompare(b.data.name));
@@ -788,7 +898,6 @@
             for (const pattern of patterns) {
                 const match = info.match(pattern);
                 if (match && match[1]) {
-                    // Clean up name from "geb. Xyz"
                     return match[1].replace(/geb\.\s\w+/g, '').trim();
                 }
             }
@@ -818,13 +927,11 @@
 
                     const spouseName = parseSpouseName(parent1Node.data.details.info);
                     if (spouseName) {
-                        // Find the spouse node in the master list
-                        const spouseNode = allPeople.find(p => p.data.name.includes(spouseName));
+                        const spouseNode = allPeople.find(p => p.data.name.includes(spouseName) && p.parent === parent1Node.parent);
                         if (spouseNode) {
                              const parent2Ahnen = buildAncestors(spouseNode, maxDepth - 1, new Set(visited));
                              if(parent2Ahnen) ahnenNode.children.push(parent2Ahnen);
                         } else {
-                            // Spouse not in the main trees, add as a leaf
                             ahnenNode.children.push({ name: spouseName, details: {}, children: [] });
                         }
                     }
@@ -876,10 +983,11 @@
 
             const viewGroup = content.append('div').attr('class', 'control-group');
             viewGroup.append('label').text('Ansicht wählen:');
-            const viewSwitcher = viewGroup.append('div').attr('class', 'view-switcher grid grid-cols-3 gap-1');
+            const viewSwitcher = viewGroup.append('div').attr('class', 'view-switcher grid grid-cols-2 sm:grid-cols-4 gap-1');
             
             viewSwitcher.append('div').html('<input type="radio" id="view-koller" name="view" value="koller" checked><label for="view-koller">Koller</label>');
             viewSwitcher.append('div').html('<input type="radio" id="view-holl" name="view" value="holl"><label for="view-holl">Holl</label>');
+            viewSwitcher.append('div').html('<input type="radio" id="view-maier" name="view" value="maier"><label for="view-maier">Maier</label>');
             viewSwitcher.append('div').html('<input type="radio" id="view-ahnentafel" name="view" value="ahnentafel"><label for="view-ahnentafel">Ahnentafel</label>');
 
             d3.selectAll('input[name="view"]').on('change', function() {
@@ -1307,7 +1415,8 @@
 
             root = d3.hierarchy(data, d => d.children);
             
-            const tempRootForDepth = d3.hierarchy(JSON.parse(JSON.stringify(data)), d => d.children);
+            const cleanDataForDepth = JSON.parse(JSON.stringify(data));
+            const tempRootForDepth = d3.hierarchy(cleanDataForDepth, d => d.children);
             const maxDataDepth = findMaxDepth(tempRootForDepth);
             
             createControls(maxDataDepth);
