@@ -31,7 +31,7 @@
             fill: none;
             stroke: #cbd5e1;
             stroke-width: 2px;
-            transition: stroke 0.5s ease;
+            transition: stroke 0.5s ease, stroke-width 0.5s ease;
         }
 
         /* Styling for the person nodes */
@@ -54,13 +54,15 @@
             transform: scale(1.2);
         }
         
-        .node.descendant-highlight circle {
-            stroke: #22c55e; /* Green 500 for descendants */
+        .node.descendant-highlight circle,
+        .node.ancestor-highlight circle {
+            stroke: #22c55e; /* Green 500 for descendants & ancestors */
             fill: #dcfce7;
         }
 
-        .link.descendant-highlight {
-            stroke: #16a34a; /* Green 600 for descendant links */
+        .link.descendant-highlight,
+        .link.ancestor-highlight {
+            stroke: #16a34a; /* Green 600 for descendant & ancestor links */
             stroke-width: 3px;
         }
 
@@ -77,89 +79,15 @@
             transform: scale(1.1);
         }
         
-        /* Controls Panel - Positioned at the bottom */
-        .panel {
-            position: absolute;
-            bottom: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 20;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1), 0 -2px 4px -2px rgb(0 0 0 / 0.1);
-            width: auto;
-            max-width: 95vw;
-            padding: 0.75rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: center;
-            align-items: center;
+        /* Cockpit Menu Styles */
+        .view-btn.active {
+            background-color: #e0f2fe; /* sky-100 */
+            color: #0284c7; /* sky-700 */
+            font-weight: 700;
         }
-        
-        .panel .control-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .panel label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-        .panel input[type="text"] {
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
-            padding: 0.35rem 0.5rem;
-            width: 150px;
-        }
-        
-        .panel button {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-        }
-        .panel button:hover {
-            background-color: #f3f4f6;
-        }
-        .panel button.primary {
-            background-color: #0ea5e9;
-            color: white;
-            border-color: transparent;
-        }
-        .panel button.primary:hover {
-            background-color: #0284c7;
-        }
-
-        .view-switcher {
-            display: flex;
-            background-color: #f3f4f6;
-            border-radius: 8px;
-            padding: 0.25rem;
-        }
-        .view-switcher label {
-            display: block;
-            padding: 0.35rem 0.75rem;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-            font-weight: 500;
-            transition: background-color 0.2s, color 0.2s;
-            white-space: nowrap;
-        }
-        .view-switcher input[type="radio"] {
-            display: none;
-        }
-        .view-switcher input[type="radio"]:checked + label {
-            background-color: #ffffff;
-            color: #0ea5e9;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        .view-btn-ahnen.active {
+            background-color: #fcd34d; /* amber-300 */
+            color: #92400e; /* amber-800 */
         }
         
         /* Search specific styles */
@@ -171,18 +99,20 @@
             bottom: 100%; /* Position above the input */
             left: 0;
             right: 0;
+            width: 100%;
             background: white;
             border: 1px solid #d1d5db;
-            border-bottom: none;
-            border-radius: 6px 6px 0 0;
+            border-radius: 6px;
             max-height: 200px;
             overflow-y: auto;
-            z-index: 30;
-            margin-bottom: 0.25rem;
+            z-index: 60;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin-bottom: 0.5rem;
         }
         .search-result-item {
             padding: 0.5rem;
             cursor: pointer;
+            font-size: 0.875rem;
         }
         .search-result-item:hover {
             background-color: #f1f5f9;
@@ -221,16 +151,55 @@
         <p class="text-slate-600 mt-1 text-sm md:text-base">Ansicht wählen, Knoten anklicken, Zoomen & Verschieben.</p>
     </div>
 
-    <div id="controls-container" class="panel">
-        <!-- JS will populate this -->
-    </div>
-
     <div id="tree-container"></div>
 
     <!-- This is the new detail panel that replaces the old tooltip -->
     <div id="detail-panel">
         <!-- Content will be generated by JavaScript -->
     </div>
+
+    <!-- NEW: Cockpit Menu HTML Structure -->
+    <div class="fixed bottom-4 right-4 z-50">
+        <div id="cockpit-menu" class="relative flex flex-col items-end">
+            <!-- Menu Items Panel -->
+            <div id="cockpit-options" class="w-64 bg-white/80 backdrop-blur-md rounded-lg shadow-xl mb-4 p-3 space-y-3 opacity-0 transform translate-y-4 transition-all pointer-events-none">
+                <!-- View Switcher -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button data-view="koller" class="view-btn px-3 py-2 text-center rounded-md font-semibold text-slate-700 hover:bg-slate-100">Koller</button>
+                    <button data-view="holl" class="view-btn px-3 py-2 text-center rounded-md font-semibold text-slate-700 hover:bg-slate-100">Holl</button>
+                    <button data-view="maier" class="view-btn px-3 py-2 text-center rounded-md font-semibold text-slate-700 hover:bg-slate-100">Maier</button>
+                    <button data-view="ahnentafel" class="view-btn view-btn-ahnen px-3 py-2 text-center rounded-md font-bold text-amber-800 bg-amber-200 hover:bg-amber-300">Ahnentafel</button>
+                </div>
+                <!-- Search -->
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Personensuche..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                    <div class="search-results"></div>
+                </div>
+                <!-- Level Control -->
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold text-slate-600" title="Die Zählung beginnt mit Generation 0 für den obersten Vorfahren.">Generation</span>
+                    <div class="flex items-center space-x-2">
+                        <button id="reset-button" title="Ansicht zurücksetzen" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                        </button>
+                        <button id="level-minus-button" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 font-bold">-</button>
+                        <span id="level-display" class="font-bold w-4 text-center">1</span>
+                        <button id="level-plus-button" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 font-bold">+</button>
+                    </div>
+                </div>
+                 <!-- Selection Info -->
+                <div id="selection-info" class="border-t border-slate-200 pt-2 text-sm">
+                    <!-- JS will populate this -->
+                </div>
+            </div>
+             <!-- Main Toggle Button -->
+            <button id="fab-toggle" class="w-16 h-16 rounded-full bg-sky-600 text-white shadow-lg flex items-center justify-center transform hover:scale-110 transition-transform">
+                <svg id="fab-icon-open" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                <svg id="fab-icon-close" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+    </div>
+
 
     <script>
         // --- DATA SECTION ---
@@ -571,8 +540,8 @@
         // Global variables
         let svg, g, zoom, detailPanel;
         let root, selectedNode, initialTransform, hideDetailPanelTimer;
-        let currentVisibleDepth = 1;
-        let maxDataDepth = 1;
+        let currentVisibleDepth = 1; // Start at level 1
+        let maxDataDepth = 0;
         const allPeopleMap = new Map();
         const personToStammMap = new Map();
         let width = window.innerWidth;
@@ -697,65 +666,18 @@
             svg.call(zoom);
         }
         
-        // --- UI CONTROLS ---
-
-        function createControls() {
-            const container = d3.select("#controls-container");
-            container.html(''); 
-
-            // View Switcher
-            const viewGroup = container.append('div').attr('class', 'control-group');
-            viewGroup.append('label').text('Ansicht:');
-            const viewSwitcher = viewGroup.append('div').attr('class', 'view-switcher');
-            viewSwitcher.append('div').html('<input type="radio" id="view-koller" name="view" value="koller" checked><label for="view-koller">Koller</label>');
-            viewSwitcher.append('div').html('<input type="radio" id="view-holl" name="view" value="holl"><label for="view-holl">Holl</label>');
-            viewSwitcher.append('div').html('<input type="radio" id="view-maier" name="view" value="maier"><label for="view-maier">Maier</label>');
-            viewSwitcher.append('div').html('<input type="radio" id="view-ahnentafel" name="view" value="ahnentafel"><label for="view-ahnentafel">Ahnentafel</label>');
-            d3.selectAll('input[name="view"]').on('change', function() {
-                renderTree(this.value);
-            });
-
-            // Search
-            const searchGroup = container.append('div').attr('class', 'control-group search-container');
-            searchGroup.append('label').attr('for', 'search-input').text('Suche:');
-            searchGroup.append('input')
-                .attr('type', 'text')
-                .attr('id', 'search-input')
-                .attr('placeholder', 'Name...');
-            searchGroup.append('div').attr('class', 'search-results');
-            d3.select('#search-input').on('input', handleSearch);
-
-            // Level control
-            const levelGroup = container.append('div').attr('class', 'control-group');
-            levelGroup.append('label').text('Ebene:');
-            levelGroup.append('button').attr('id', 'level-minus-button').text('-');
-            levelGroup.append('span').attr('id', 'level-display').attr('class', 'font-bold text-center w-6').text(currentVisibleDepth);
-            levelGroup.append('button').attr('id', 'level-plus-button').text('+');
-            d3.select('#level-plus-button').on('click', () => changeTreeDepth(1));
-            d3.select('#level-minus-button').on('click', () => changeTreeDepth(-1));
-
-            // NEW: Selection Info Display
-            container.append('div').attr('class', 'control-group').attr('id', 'selection-info');
-            
-            // Action Buttons
-            const actionGroup = container.append('div').attr('class', 'control-group');
-            actionGroup.append('button').attr('id', 'reset-button').text('Zurücksetzen');
-            
-            d3.select('#reset-button').on('click', handleReset);
-        }
-        
         // --- D3 UPDATE LOGIC ---
         
         function changeTreeDepth(delta) {
             let newDepth = currentVisibleDepth + delta;
-            if (newDepth < 1) newDepth = 1;
-            if (newDepth > maxDataDepth) newDepth = maxDataDepth;
+            if (newDepth < 0) newDepth = 0; // Level 0 is the minimum
+            if (newDepth > maxDataDepth -1) newDepth = maxDataDepth -1; // Max depth index
             
             currentVisibleDepth = newDepth;
             d3.select('#level-display').text(currentVisibleDepth);
 
             root.each(d => {
-                if (d.depth < currentVisibleDepth) {
+                 if (d.depth < currentVisibleDepth) {
                     if (d._children) {
                         d.children = d._children;
                         d._children = null;
@@ -770,11 +692,15 @@
             update(root);
         }
 
+        /**
+         * CORRECTED: Calculates the correct number of levels based on the user's expectation.
+         */
         function findMaxDepth(node) {
             let max = 0;
             node.each(d => {
                 if (d.depth > max) max = d.depth;
             });
+            // The number of levels is the highest depth index + 1.
             return max + 1;
         }
         
@@ -860,25 +786,29 @@
         }
 
         function highlightBranch(d) {
-            d3.selectAll('.node').classed('highlight descendant-highlight', false);
-            d3.selectAll('.link').classed('descendant-highlight', false);
+            d3.selectAll('.node').classed('highlight descendant-highlight ancestor-highlight', false);
+            d3.selectAll('.link').classed('descendant-highlight ancestor-highlight', false);
 
             if (!d) return;
 
+            const ancestors = d.ancestors();
+            const ancestorIds = new Set(ancestors.map(n => n.data.id));
             const descendantNodes = d.descendants();
             const descendantIds = new Set(descendantNodes.map(n => n.data.id));
 
             d3.selectAll('.node').each(function(node_d) {
                 if(!node_d.data.id) return;
-                const isDescendant = descendantIds.has(node_d.data.id);
                 d3.select(this).classed('highlight', node_d.data.id === d.data.id);
-                d3.select(this).classed('descendant-highlight', isDescendant && node_d.data.id !== d.data.id);
+                d3.select(this).classed('descendant-highlight', descendantIds.has(node_d.data.id) && node_d.data.id !== d.data.id);
+                d3.select(this).classed('ancestor-highlight', ancestorIds.has(node_d.data.id) && node_d.data.id !== d.data.id);
             });
 
             d3.selectAll('.link').each(function(link_d) {
                 if(!link_d.source.data.id || !link_d.target.data.id) return;
                 const isDescendantLink = descendantIds.has(link_d.source.data.id) && descendantIds.has(link_d.target.data.id);
+                const isAncestorLink = ancestorIds.has(link_d.source.data.id) && ancestorIds.has(link_d.target.data.id);
                 d3.select(this).classed('descendant-highlight', isDescendantLink);
+                d3.select(this).classed('ancestor-highlight', isAncestorLink);
             });
         }
 
@@ -888,7 +818,8 @@
          * UPDATED: Centers the view on a node. Now handles Ahnentafel root differently for top-centering.
          */
         function centerOnNode(d) {
-            const isAhnentafelRoot = d.parent === null && d3.select('input[name="view"]:checked').node().value === 'ahnentafel';
+            const currentView = d3.select('.view-btn.active').attr('data-view');
+            const isAhnentafelRoot = d.parent === null && currentView === 'ahnentafel';
             const yOffset = 120;
             const scale = 0.7;
             
@@ -905,34 +836,42 @@
 
             // Update selection info in the control panel
             d3.select('#selection-info')
-              .html(`<label>Selektion:</label><span class="font-bold text-sky-600">${d.data.name} (Ebene ${d.depth + 1})</span>`);
+              .html(`<span class="font-semibold text-slate-500">Selektion: </span><span class="font-bold text-sky-600">${d.data.name} (Gen. ${d.depth})</span>`);
         }
 
         function handleSearch(event) {
-            const inputElement = this;
+            const inputElement = d3.select(this).node();
             const value = inputElement.value.toLowerCase();
-            const resultsContainer = d3.select(inputElement.parentNode).select('.search-results');
+            const resultsContainer = d3.select('.search-results');
             resultsContainer.html('');
-            const currentView = d3.select('input[name="view"]:checked').node().value;
+            const currentView = d3.select('.view-btn.active').attr('data-view');
 
             if (value.length < 2) return;
 
             const results = [];
+            const addedIds = new Set(); 
             peopleData
                 .filter(p => p.name.toLowerCase().includes(value))
                 .forEach(p => {
-                    const affiliations = personToStammMap.get(p.id) || [];
-                    affiliations.forEach(stamm => {
-                        const stammLabel = stamm.charAt(0).toUpperCase() + stamm.slice(1);
-                        const isHauptstamm = stamm === currentView;
-                        const birthYear = p.details.geboren ? `*${p.details.geboren.split('.').pop().trim()}` : '';
-                        
+                    if (currentView === 'ahnentafel') {
+                        if (addedIds.has(p.id)) return;
+                        addedIds.add(p.id);
                         results.push({
-                            displayName: `${p.name} (${birthYear}, Stamm ${stammLabel}${isHauptstamm ? ' - Hauptstamm' : ''})`,
+                            displayName: `${p.name} (*${p.details.geboren ? p.details.geboren.split('.').pop().trim() : '?'})`,
                             targetId: p.id,
-                            targetStamm: stamm
+                            targetStamm: 'ahnentafel'
                         });
-                    });
+                    } else {
+                        const affiliations = personToStammMap.get(p.id) || [];
+                        affiliations.forEach(stamm => {
+                            const stammLabel = stamm.charAt(0).toUpperCase() + stamm.slice(1);
+                            results.push({
+                                displayName: `${p.name} (*${p.details.geboren ? p.details.geboren.split('.').pop().trim() : '?'}, Stamm ${stammLabel})`,
+                                targetId: p.id,
+                                targetStamm: stamm
+                            });
+                        });
+                    }
                 });
 
             results.forEach(res => {
@@ -948,24 +887,18 @@
         }
         
         function handleReset() {
-            const currentView = d3.select('input[name="view"]:checked').node().value;
             d3.select('#selection-info').html(''); // Clear selection info
-            if (currentView === 'ahnentafel') {
-                 const startPersonId = 202; // Default to a known person for reset
-                 renderTree('ahnentafel', generateAhnentafel(startPersonId, allPeopleMap));
-            } else {
-                 renderTree(currentView);
-            }
+            const currentView = d3.select('.view-btn.active').attr('data-view');
+            renderTree(currentView);
         }
         
         /**
-         * REWRITTEN V5: This version uses a temporary, complete hierarchy to find the path,
+         * FINAL VERSION: This function now reliably finds a person.
+         * It uses a temporary, complete hierarchy to find the path,
          * ensuring that even hidden nodes can be found and revealed correctly.
          */
         function findAndShowPerson(personId) {
-            // Step 1: Build a temporary, complete hierarchy in memory to find the node and its path.
-            // This is crucial because the currently displayed `root` might have nodes collapsed.
-            const currentView = d3.select('input[name="view"]:checked').node().value;
+            const currentView = d3.select('.view-btn.active').attr('data-view');
             const rootIds = { koller: 1, holl: 205, maier: 305 };
             const fullData = buildTreeFromFlatData(rootIds[currentView], allPeopleMap);
             if (!fullData) return;
@@ -979,28 +912,20 @@
             });
 
             if (targetNodeInFullHierarchy) {
-                // Step 2: Get the IDs of all ancestors. This is our "path" to the target.
                 const pathIds = new Set(targetNodeInFullHierarchy.ancestors().map(d => d.data.id));
 
-                // Step 3: Collapse the entire *visible* tree to start from a clean slate.
                 root.each(d => {
-                    if (d.children) {
+                    if (d.children && !pathIds.has(d.data.id)) {
                         d._children = d.children;
                         d.children = null;
-                    }
-                });
-
-                // Step 4: Expand only the nodes in the visible tree that are part of our path.
-                root.each(d => {
-                    if (pathIds.has(d.data.id)) {
-                        if (d._children) {
+                    } else if (pathIds.has(d.data.id)) {
+                         if (d._children) {
                             d.children = d._children;
                             d._children = null;
                         }
                     }
                 });
                 
-                // Step 5: Find the target node again, this time in the now-visible tree structure.
                 let targetNodeInVisibleTree = null;
                 root.each(d => {
                     if (d.data.id === personId) {
@@ -1008,7 +933,6 @@
                     }
                 });
 
-                // Step 6: Animate the changes and center on the target.
                 if (targetNodeInVisibleTree) {
                     update(root);
                     const animationDuration = 500;
@@ -1024,10 +948,9 @@
         // --- NAVIGATION LOGIC ---
         function navigateToPerson(personId, targetStamm = null) {
             hideDetailPanel();
-            const currentView = d3.select('input[name="view"]:checked').node().value;
+            const currentView = d3.select('.view-btn.active').attr('data-view');
             
-            // Ahnentafel search logic: rebuilds the tree with the person as the root.
-            if (currentView === 'ahnentafel') {
+            if (targetStamm === 'ahnentafel') {
                 const ahnentafelData = generateAhnentafel(personId, allPeopleMap);
                 if (ahnentafelData) {
                     renderTree('ahnentafel', ahnentafelData, personId);
@@ -1035,13 +958,10 @@
                 return;
             }
 
-            // Stammbaum search logic
-            if (targetStamm && targetStamm !== 'ahnentafel') {
+            if (targetStamm) {
                 if (currentView !== targetStamm) {
-                    // Switch the view and then find the person
                     renderTree(targetStamm, null, personId); 
                 } else {
-                    // Person is in the current view, just find and show them
                     findAndShowPerson(personId);
                 }
             }
@@ -1080,13 +1000,17 @@
             const person = allPeopleMap.get(d.data.id);
             if (!person) return;
 
+            const stammLinks = (personToStammMap.get(person.id) || [])
+                .map(stamm => `<span class="detail-link" data-id="${person.id}" data-stamm="${stamm}">${stamm.charAt(0).toUpperCase() + stamm.slice(1)}</span>`)
+                .join(', ');
+
             let panelHTML = `
                 <div class="p-6">
                     <div class="flex items-center space-x-6">
                         <img class="h-24 w-24 rounded-full object-cover ring-4 ring-sky-100" src="https://placehold.co/100x100/e0f2fe/0c4a6e?text=Foto" alt="Platzhalterbild" onerror="this.onerror=null;this.src='https://placehold.co/100x100/e0f2fe/0c4a6e?text=Foto';">
                         <div>
                             <h3 class="text-2xl font-bold text-slate-800">${person.name}</h3>
-                            <p class="text-slate-500 font-medium">Stamm ${personToStammMap.get(person.id).join(', ') || 'Unbekannt'}</p>
+                            <p class="text-slate-500 font-medium">Stamm ${stammLinks || 'Unbekannt'}</p>
                         </div>
                     </div>
                     <div class="mt-6 border-t border-slate-200 pt-6">
@@ -1130,7 +1054,6 @@
                 const action = this.dataset.action;
                 const targetStamm = this.dataset.stamm;
                 
-                // Special handling for Ahnentafel links inside the panel
                 if (action === 'ahnentafel') {
                      navigateToPerson(targetId, 'ahnentafel');
                 } else {
@@ -1143,6 +1066,37 @@
             if (detailPanel) {
                 detailPanel.classed('visible', false);
             }
+        }
+        
+        // --- UI CONTROLS INITIALIZATION ---
+        function initializeControls() {
+            // View Switcher
+            d3.selectAll('.view-btn').on('click', function() {
+                renderTree(this.dataset.view);
+            });
+
+            // Search
+            d3.select('#search-input').on('input', handleSearch);
+
+            // Level Control
+            d3.select('#level-plus-button').on('click', () => changeTreeDepth(1));
+            d3.select('#level-minus-button').on('click', () => changeTreeDepth(-1));
+
+            // Reset Button
+            d3.select('#reset-button').on('click', handleReset);
+            
+            // Menu Toggle
+            const fabToggle = document.getElementById('fab-toggle');
+            const fabOptions = document.getElementById('cockpit-options');
+            const fabIconOpen = document.getElementById('fab-icon-open');
+            const fabIconClose = document.getElementById('fab-icon-close');
+            fabToggle.addEventListener('click', () => {
+                fabOptions.classList.toggle('opacity-0');
+                fabOptions.classList.toggle('translate-y-4');
+                fabOptions.classList.toggle('pointer-events-none');
+                fabIconOpen.classList.toggle('hidden');
+                fabIconClose.classList.toggle('hidden');
+            });
         }
 
         // --- MAIN RENDER FUNCTION ---
@@ -1167,6 +1121,7 @@
             d3.select('#main-title').text(title);
             
             selectedNode = null;
+            d3.select('#selection-info').html('');
             
             if (!data) {
                 console.error("No data available for view:", viewKey);
@@ -1176,16 +1131,21 @@
 
             root = d3.hierarchy(data, d => d.children);
             maxDataDepth = findMaxDepth(root);
-            currentVisibleDepth = 1;
+            currentVisibleDepth = 1; // Default to showing Gen 0 and 1
+            d3.select('#level-display').text(currentVisibleDepth);
 
-            createControls();
-            d3.select(`#view-${viewKey}`).property('checked', true);
+            // Update active button in menu
+            d3.selectAll('.view-btn').classed('active', false).classed('bg-slate-100', true);
+            d3.selectAll('.view-btn-ahnen').classed('active', false);
+            const activeButton = d3.select(`.view-btn[data-view="${viewKey}"]`);
+            activeButton.classed('active', true).classed('bg-slate-100', false);
+            if(viewKey === 'ahnentafel') d3.select('.view-btn-ahnen').classed('active', true);
             
             root.x0 = width / 2;
             root.y0 = 0;
             
             root.each(d => {
-                if (d.depth >= currentVisibleDepth) {
+                if (d.depth >= currentVisibleDepth) { // Collapse nodes deeper than the visible depth
                     d._children = d.children;
                     d.children = null;
                 }
@@ -1213,12 +1173,13 @@
 
         // --- Initial Setup ---
         initializeMasterData();
+        initializeControls();
         renderTree('koller');
 
         window.addEventListener('resize', () => {
             width = window.innerWidth;
             height = window.innerHeight;
-            const currentView = d3.select('input[name="view"]:checked').node().value;
+            const currentView = d3.select('.view-btn.active').attr('data-view');
             renderTree(currentView);
         });
 
