@@ -77,121 +77,89 @@
             transform: scale(1.1);
         }
         
-        /* Controls Panel */
+        /* Controls Panel - Positioned at the bottom */
         .panel {
             position: absolute;
-            top: 1rem;
-            right: 1rem;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 20;
             background-color: white;
             border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .panel-header {
+            box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1), 0 -2px 4px -2px rgb(0 0 0 / 0.1);
+            width: auto;
+            max-width: 95vw;
             padding: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
             align-items: center;
         }
-
-        .panel-header svg {
-            width: 1.25rem;
-            height: 1.25rem;
-            transition: transform 0.3s ease;
-        }
-
-        .panel-content {
-            padding: 0 0.75rem 0.75rem 0.75rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
-            max-height: 1000px;
-            opacity: 1;
-            overflow: hidden;
-        }
-
-        .panel-content.collapsed {
-            max-height: 0;
-            opacity: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-        }
-
-        .panel.collapsed .panel-header svg {
-            transform: rotate(-90deg);
-        }
-
+        
         .panel .control-group {
             display: flex;
-            flex-direction: column;
+            align-items: center;
             gap: 0.5rem;
-        }
-        
-        .panel .control-row {
-             display: flex;
-             align-items: center;
-             justify-content: space-between;
         }
 
         .panel label {
-            margin-right: 0.75rem;
             font-size: 0.875rem;
             font-weight: 500;
             white-space: nowrap;
         }
 
-        .panel select, .panel input[type="text"] {
+        .panel input[type="text"] {
             border-radius: 6px;
             border: 1px solid #d1d5db;
-            padding: 0.25rem 0.5rem;
-            width: 100%;
+            padding: 0.35rem 0.5rem;
+            width: 150px;
         }
         
         .panel button {
-            width: 100%;
-            padding: 0.5rem;
+            padding: 0.5rem 1rem;
             border-radius: 6px;
-            border: 1px solid transparent;
-            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.2s, color 0.2s, border-color 0.2s;
         }
         .panel button:hover {
-            background-color: #e5e7eb;
+            background-color: #f3f4f6;
         }
         .panel button.primary {
             background-color: #0ea5e9;
             color: white;
+            border-color: transparent;
         }
         .panel button.primary:hover {
             background-color: #0284c7;
         }
 
+        .view-switcher {
+            display: flex;
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            padding: 0.25rem;
+        }
         .view-switcher label {
             display: block;
-            padding: 0.5rem;
+            padding: 0.35rem 0.75rem;
             border-radius: 6px;
             cursor: pointer;
             text-align: center;
             font-weight: 500;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, color 0.2s;
+            white-space: nowrap;
         }
         .view-switcher input[type="radio"] {
             display: none;
         }
         .view-switcher input[type="radio"]:checked + label {
-            background-color: #38bdf8;
-            color: white;
-        }
-        .view-switcher label:not(input[type="radio"]:checked + label):hover {
-            background-color: #f1f5f9;
+            background-color: #ffffff;
+            color: #0ea5e9;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
         }
         
         /* Search specific styles */
@@ -200,16 +168,17 @@
         }
         .search-results {
             position: absolute;
-            top: 100%;
+            bottom: 100%; /* Position above the input */
             left: 0;
             right: 0;
             background: white;
             border: 1px solid #d1d5db;
-            border-top: none;
-            border-radius: 0 0 6px 6px;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
             max-height: 200px;
             overflow-y: auto;
             z-index: 30;
+            margin-bottom: 0.25rem;
         }
         .search-result-item {
             padding: 0.5rem;
@@ -219,11 +188,9 @@
             background-color: #f1f5f9;
         }
 
-        /* Detail Panel (replaces Tooltip) */
+        /* Detail Panel - position is now set by JS */
         #detail-panel {
             position: absolute;
-            left: 1rem;
-            top: 8rem;
             width: 350px;
             background-color: white;
             border-radius: 0.75rem;
@@ -231,7 +198,7 @@
             border: 1px solid #e2e8f0;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s;
+            transition: opacity 0.3s, top 0.3s, left 0.3s;
             z-index: 15;
         }
         #detail-panel.visible {
@@ -603,24 +570,43 @@
         
         // Global variables
         let svg, g, zoom, detailPanel;
-        let root, flatData, selectedNode, initialTransform;
-        let allPeopleMap = new Map();
-        let maxVisibleDepth = 1;
-        const width = window.innerWidth;
-        const height = window.innerHeight;
+        let root, selectedNode, initialTransform, hideDetailPanelTimer;
+        let currentVisibleDepth = 1;
+        let maxDataDepth = 1;
+        const allPeopleMap = new Map();
+        const personToStammMap = new Map();
+        let width = window.innerWidth;
+        let height = window.innerHeight;
         const treeLayout = d3.tree().nodeSize([160, 220]);
 
         // --- DATA PROCESSING ---
 
         /**
-         * Initializes the master data map from the flat array.
+         * Initializes the master data map and the stamm affiliation map.
          */
         function initializeMasterData() {
             allPeopleMap.clear();
+            personToStammMap.clear();
             peopleData.forEach(p => {
                 if (!p.details) p.details = {};
                 allPeopleMap.set(p.id, { ...p, children: [], _children: [] });
+                personToStammMap.set(p.id, []);
             });
+
+            // Pre-calculate which stamm each person belongs to for faster search
+            const rootIds = { koller: 1, holl: 205, maier: 305 };
+            for (const [stammKey, rootId] of Object.entries(rootIds)) {
+                const treeData = buildTreeFromFlatData(rootId, allPeopleMap);
+                if (treeData) {
+                    const hierarchy = d3.hierarchy(treeData);
+                    hierarchy.each(node => {
+                        const affiliations = personToStammMap.get(node.data.id);
+                        if (affiliations && !affiliations.includes(stammKey)) {
+                            affiliations.push(stammKey);
+                        }
+                    });
+                }
+            }
         }
         
         /**
@@ -649,12 +635,12 @@
         }
 
         /**
-         * Generates an ancestor tree (Ahnentafel) for a given person ID.
+         * Generates an ancestor tree (Ahnentafel) for a given person ID, up to the last known ancestor.
          */
-        function generateAhnentafel(startId, personMap, maxDepth = 10) {
+        function generateAhnentafel(startId, personMap) {
             const visited = new Set();
-            function buildAncestors(personId, depth) {
-                if (!personId || depth > maxDepth || visited.has(personId)) return null;
+            function buildAncestors(personId) {
+                if (!personId || visited.has(personId)) return null;
                 visited.add(personId);
                 const person = personMap.get(personId);
                 if (!person) return null;
@@ -667,46 +653,17 @@
                     children: []
                 };
 
-                const father = buildAncestors(person.fatherId, depth + 1);
-                const mother = buildAncestors(person.motherId, depth + 1);
+                const father = buildAncestors(person.fatherId);
+                const mother = buildAncestors(person.motherId);
 
                 if (father) ahnenNode.children.push(father);
                 if (mother) ahnenNode.children.push(mother);
                 
                 return ahnenNode;
             }
-            return buildAncestors(startId, 1);
+            return buildAncestors(startId);
         }
         
-        /**
-         * Finds the root view key ('koller', 'holl', 'maier') for a given person ID.
-         */
-        function findRootViewKey(personId) {
-            const rootIdMap = { 1: 'koller', 205: 'holl', 305: 'maier' };
-            let current = allPeopleMap.get(personId);
-            const visited = new Set();
-            
-            while (current) {
-                if (rootIdMap[current.id]) return rootIdMap[current.id];
-                if (visited.has(current.id)) return null;
-                visited.add(current.id);
-
-                let parentId = current.fatherId || current.motherId;
-                if (parentId) {
-                    current = allPeopleMap.get(parentId);
-                } else {
-                    const spouseOf = peopleData.find(p => p.spouseIds?.includes(current.id));
-                    if (spouseOf) {
-                        current = allPeopleMap.get(spouseOf.id);
-                    } else {
-                        break;
-                    }
-                }
-            }
-            return null;
-        }
-
-
         // --- VISUALIZATION SETUP ---
 
         function initializeVisualization() {
@@ -715,15 +672,26 @@
             svg = d3.select("#tree-container").append("svg")
                 .attr("width", width)
                 .attr("height", height)
-                .on("click", hideDetailPanel);
+                .on("click", () => {
+                    selectedNode = null;
+                    highlightBranch(null);
+                    d3.select('#selection-info').html(''); // Clear selection on background click
+                });
 
             g = svg.append("g");
-            detailPanel = d3.select("#detail-panel");
+            detailPanel = d3.select("#detail-panel")
+                .on("mouseover", () => clearTimeout(hideDetailPanelTimer))
+                .on("mouseout", () => {
+                    hideDetailPanelTimer = setTimeout(hideDetailPanel, 300);
+                });
 
             zoom = d3.zoom()
                 .scaleExtent([0.1, 3])
                 .on("zoom", (event) => {
                     g.attr("transform", event.transform);
+                    if (detailPanel.classed('visible') && selectedNode) {
+                        positionDetailPanel(selectedNode);
+                    }
                 });
 
             svg.call(zoom);
@@ -731,99 +699,85 @@
         
         // --- UI CONTROLS ---
 
-        function createControls(maxDepth) {
+        function createControls() {
             const container = d3.select("#controls-container");
             container.html(''); 
 
-            const header = container.append('div').attr('class', 'panel-header');
-            header.append('span').text('Ansicht & Steuerung');
-            header.append('svg').attr('viewBox', '0 0 20 20').attr('fill', 'currentColor')
-              .html(`<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />`);
-            
-            const content = container.append('div').attr('class', 'panel-content');
-
-            header.on('click', () => {
-                container.classed('collapsed', !container.classed('collapsed'));
-                content.classed('collapsed', !content.classed('collapsed'));
-            });
-
-            const viewGroup = content.append('div').attr('class', 'control-group');
-            viewGroup.append('label').text('Ansicht wählen:');
-            const viewSwitcher = viewGroup.append('div').attr('class', 'view-switcher grid grid-cols-2 sm:grid-cols-4 gap-1');
-            
+            // View Switcher
+            const viewGroup = container.append('div').attr('class', 'control-group');
+            viewGroup.append('label').text('Ansicht:');
+            const viewSwitcher = viewGroup.append('div').attr('class', 'view-switcher');
             viewSwitcher.append('div').html('<input type="radio" id="view-koller" name="view" value="koller" checked><label for="view-koller">Koller</label>');
             viewSwitcher.append('div').html('<input type="radio" id="view-holl" name="view" value="holl"><label for="view-holl">Holl</label>');
             viewSwitcher.append('div').html('<input type="radio" id="view-maier" name="view" value="maier"><label for="view-maier">Maier</label>');
             viewSwitcher.append('div').html('<input type="radio" id="view-ahnentafel" name="view" value="ahnentafel"><label for="view-ahnentafel">Ahnentafel</label>');
-
             d3.selectAll('input[name="view"]').on('change', function() {
                 renderTree(this.value);
             });
 
-            const searchGroup = content.append('div').attr('class', 'control-group mt-2 search-container').attr('id', 'search-container');
-            searchGroup.append('label').attr('for', 'search-input').text('Person suchen:');
+            // Search
+            const searchGroup = container.append('div').attr('class', 'control-group search-container');
+            searchGroup.append('label').attr('for', 'search-input').text('Suche:');
             searchGroup.append('input')
                 .attr('type', 'text')
                 .attr('id', 'search-input')
-                .attr('placeholder', 'Name eingeben...');
+                .attr('placeholder', 'Name...');
             searchGroup.append('div').attr('class', 'search-results');
-
-            const depthGroup = content.append('div').attr('class', 'control-group mt-2').attr('id', 'depth-control');
-            const depthRow = depthGroup.append('div').attr('class', 'control-row');
-            depthRow.append('label').attr('for', 'depth-switch').text('Ebenen anzeigen:');
-            const depthSelect = depthRow.append('select').attr('id', 'depth-switch')
-                .on('change', function() {
-                    maxVisibleDepth = parseInt(this.value);
-                    setTreeVisibility(root, maxVisibleDepth);
-                    update(root);
-                });
-            
-            for (let i = 1; i <= maxDepth; i++) {
-                depthSelect.append('option').attr('value', i).text(i)
-                    .property('selected', i === maxVisibleDepth);
-            }
-            
-            const buttonGroup = content.append('div').attr('class', 'control-group mt-2 flex-col space-y-2');
-            buttonGroup.append('button').attr('id', 'reset-button').text('Ansicht zurücksetzen');
-            buttonGroup.append('button').attr('id', 'zoom-button').text('Auf Auswahl zoomen').attr('class', 'primary');
-
             d3.select('#search-input').on('input', handleSearch);
+
+            // Level control
+            const levelGroup = container.append('div').attr('class', 'control-group');
+            levelGroup.append('label').text('Ebene:');
+            levelGroup.append('button').attr('id', 'level-minus-button').text('-');
+            levelGroup.append('span').attr('id', 'level-display').attr('class', 'font-bold text-center w-6').text(currentVisibleDepth);
+            levelGroup.append('button').attr('id', 'level-plus-button').text('+');
+            d3.select('#level-plus-button').on('click', () => changeTreeDepth(1));
+            d3.select('#level-minus-button').on('click', () => changeTreeDepth(-1));
+
+            // NEW: Selection Info Display
+            container.append('div').attr('class', 'control-group').attr('id', 'selection-info');
+            
+            // Action Buttons
+            const actionGroup = container.append('div').attr('class', 'control-group');
+            actionGroup.append('button').attr('id', 'reset-button').text('Zurücksetzen');
+            
             d3.select('#reset-button').on('click', handleReset);
-            d3.select('#zoom-button').on('click', handleZoomToSelection);
         }
         
         // --- D3 UPDATE LOGIC ---
         
-        function setTreeVisibility(node, depth) {
-            if (!node) return;
-            if (node.depth >= depth) {
-                if (node.children) {
-                    node._children = node.children;
-                    node.children = null;
+        function changeTreeDepth(delta) {
+            let newDepth = currentVisibleDepth + delta;
+            if (newDepth < 1) newDepth = 1;
+            if (newDepth > maxDataDepth) newDepth = maxDataDepth;
+            
+            currentVisibleDepth = newDepth;
+            d3.select('#level-display').text(currentVisibleDepth);
+
+            root.each(d => {
+                if (d.depth < currentVisibleDepth) {
+                    if (d._children) {
+                        d.children = d._children;
+                        d._children = null;
+                    }
+                } else {
+                    if (d.children) {
+                        d._children = d.children;
+                        d.children = null;
+                    }
                 }
-            } else {
-                if (node._children) {
-                    node.children = node._children;
-                    node._children = null;
-                }
-                if (node.children) {
-                    node.children.forEach(c => setTreeVisibility(c, depth));
-                }
-            }
+            });
+            update(root);
         }
 
         function findMaxDepth(node) {
-            if (!node) return 0;
-            let max = node.depth || 0;
-            const children = node.children || node._children;
-            if (children) {
-                children.forEach(child => {
-                    max = Math.max(max, findMaxDepth(child));
-                });
-            }
-            return max;
+            let max = 0;
+            node.each(d => {
+                if (d.depth > max) max = d.depth;
+            });
+            return max + 1;
         }
-
+        
         function update(source) {
             const duration = 500;
             
@@ -836,7 +790,29 @@
             const nodeEnter = node.enter().append("g")
                 .attr("class", "node")
                 .attr("transform", d => `translate(${source.x0},${source.y0})`)
-                .on("click", (event, d) => click(event, d));
+                .on("click", (event, d) => {
+                    event.stopPropagation();
+                    hideDetailPanel();
+                    
+                    // Update selection info on regular click
+                    centerOnNode(d);
+
+                    if (d.children) {
+                        d._children = d.children;
+                        d.children = null;
+                    } else {
+                        d.children = d._children;
+                        d._children = null;
+                    }
+                    update(d);
+                })
+                .on("mouseover", (event, d) => {
+                    clearTimeout(hideDetailPanelTimer);
+                    showDetailPanel(d);
+                })
+                .on("mouseout", () => {
+                    hideDetailPanelTimer = setTimeout(hideDetailPanel, 300);
+                });
 
             nodeEnter.append("circle").attr("r", 1e-6);
             nodeEnter.append("text").text(d => d.data.name);
@@ -907,44 +883,29 @@
         }
 
         // --- EVENT HANDLERS ---
+        
+        /**
+         * UPDATED: Centers the view on a node. Now handles Ahnentafel root differently for top-centering.
+         */
+        function centerOnNode(d) {
+            const isAhnentafelRoot = d.parent === null && d3.select('input[name="view"]:checked').node().value === 'ahnentafel';
+            const yOffset = 120;
+            const scale = 0.7;
+            
+            const translateX = width / 2 - d.x * scale;
+            const translateY = isAhnentafelRoot ? yOffset : (height / 2 - d.y * scale);
 
-        function click(event, d) {
-            event.stopPropagation();
+            const transform = d3.zoomIdentity.translate(translateX, translateY).scale(scale);
+            
+            svg.transition().duration(750).call(zoom.transform, transform);
+            
             selectedNode = d;
             highlightBranch(d);
-            showDetailPanel(d.data);
-        }
-        
-        function showPathAndCenter(d) {
-            selectedNode = d;
-            let ancestors = d.ancestors();
-            
-            root.descendants().forEach(node => {
-                if (ancestors.indexOf(node) < 0 && node.children) {
-                    node._children = node.children;
-                    node.children = null;
-                }
-            });
+            showDetailPanel(d);
 
-            ancestors.forEach(anc => {
-                if(anc._children) {
-                    anc.children = anc._children;
-                    anc._children = null;
-                }
-            });
-
-            update(root);
-
-            setTimeout(() => {
-                const scale = 0.8;
-                const transform = d3.zoomIdentity
-                    .translate(width / 2 - d.x * scale, height / 2 - d.y * scale)
-                    .scale(scale);
-                
-                svg.transition().duration(750).call(zoom.transform, transform);
-                highlightBranch(d);
-                showDetailPanel(d.data);
-            }, 550);
+            // Update selection info in the control panel
+            d3.select('#selection-info')
+              .html(`<label>Selektion:</label><span class="font-bold text-sky-600">${d.data.name} (Ebene ${d.depth + 1})</span>`);
         }
 
         function handleSearch(event) {
@@ -952,21 +913,34 @@
             const value = inputElement.value.toLowerCase();
             const resultsContainer = d3.select(inputElement.parentNode).select('.search-results');
             resultsContainer.html('');
+            const currentView = d3.select('input[name="view"]:checked').node().value;
 
             if (value.length < 2) return;
 
-            const results = peopleData
+            const results = [];
+            peopleData
                 .filter(p => p.name.toLowerCase().includes(value))
-                .map(p => ({ displayName: p.name, targetId: p.id }));
-            
-            const uniqueResults = Array.from(new Map(results.map(item => [item.displayName, item])).values());
+                .forEach(p => {
+                    const affiliations = personToStammMap.get(p.id) || [];
+                    affiliations.forEach(stamm => {
+                        const stammLabel = stamm.charAt(0).toUpperCase() + stamm.slice(1);
+                        const isHauptstamm = stamm === currentView;
+                        const birthYear = p.details.geboren ? `*${p.details.geboren.split('.').pop().trim()}` : '';
+                        
+                        results.push({
+                            displayName: `${p.name} (${birthYear}, Stamm ${stammLabel}${isHauptstamm ? ' - Hauptstamm' : ''})`,
+                            targetId: p.id,
+                            targetStamm: stamm
+                        });
+                    });
+                });
 
-            uniqueResults.forEach(res => {
+            results.forEach(res => {
                 resultsContainer.append('div')
                     .attr('class', 'search-result-item')
                     .text(res.displayName)
                     .on('click', () => {
-                        navigateToPerson(res.targetId);
+                        navigateToPerson(res.targetId, res.targetStamm);
                         resultsContainer.html('');
                         inputElement.value = '';
                     });
@@ -975,92 +949,167 @@
         
         function handleReset() {
             const currentView = d3.select('input[name="view"]:checked').node().value;
-            renderTree(currentView);
+            d3.select('#selection-info').html(''); // Clear selection info
+            if (currentView === 'ahnentafel') {
+                 const startPersonId = 202; // Default to a known person for reset
+                 renderTree('ahnentafel', generateAhnentafel(startPersonId, allPeopleMap));
+            } else {
+                 renderTree(currentView);
+            }
         }
+        
+        /**
+         * REWRITTEN V5: This version uses a temporary, complete hierarchy to find the path,
+         * ensuring that even hidden nodes can be found and revealed correctly.
+         */
+        function findAndShowPerson(personId) {
+            // Step 1: Build a temporary, complete hierarchy in memory to find the node and its path.
+            // This is crucial because the currently displayed `root` might have nodes collapsed.
+            const currentView = d3.select('input[name="view"]:checked').node().value;
+            const rootIds = { koller: 1, holl: 205, maier: 305 };
+            const fullData = buildTreeFromFlatData(rootIds[currentView], allPeopleMap);
+            if (!fullData) return;
+            const fullHierarchy = d3.hierarchy(fullData, d => d.children);
 
-        function handleZoomToSelection() {
-            if (selectedNode) {
-                const scale = 0.8;
-                const transform = d3.zoomIdentity
-                    .translate(width / 2 - selectedNode.x * scale, height / 2 - selectedNode.y * scale)
-                    .scale(scale);
-                svg.transition().duration(750).call(zoom.transform, transform);
+            let targetNodeInFullHierarchy = null;
+            fullHierarchy.each(node => {
+                if (node.data.id === personId) {
+                    targetNodeInFullHierarchy = node;
+                }
+            });
+
+            if (targetNodeInFullHierarchy) {
+                // Step 2: Get the IDs of all ancestors. This is our "path" to the target.
+                const pathIds = new Set(targetNodeInFullHierarchy.ancestors().map(d => d.data.id));
+
+                // Step 3: Collapse the entire *visible* tree to start from a clean slate.
+                root.each(d => {
+                    if (d.children) {
+                        d._children = d.children;
+                        d.children = null;
+                    }
+                });
+
+                // Step 4: Expand only the nodes in the visible tree that are part of our path.
+                root.each(d => {
+                    if (pathIds.has(d.data.id)) {
+                        if (d._children) {
+                            d.children = d._children;
+                            d._children = null;
+                        }
+                    }
+                });
+                
+                // Step 5: Find the target node again, this time in the now-visible tree structure.
+                let targetNodeInVisibleTree = null;
+                root.each(d => {
+                    if (d.data.id === personId) {
+                        targetNodeInVisibleTree = d;
+                    }
+                });
+
+                // Step 6: Animate the changes and center on the target.
+                if (targetNodeInVisibleTree) {
+                    update(root);
+                    const animationDuration = 500;
+                    setTimeout(() => {
+                        centerOnNode(targetNodeInVisibleTree);
+                    }, animationDuration + 100);
+                }
+            } else {
+                console.warn(`Node with ID ${personId} could not be found.`);
             }
         }
         
         // --- NAVIGATION LOGIC ---
-        function navigateToPerson(personId) {
+        function navigateToPerson(personId, targetStamm = null) {
             hideDetailPanel();
             const currentView = d3.select('input[name="view"]:checked').node().value;
             
+            // Ahnentafel search logic: rebuilds the tree with the person as the root.
             if (currentView === 'ahnentafel') {
-                 const ahnentafelData = generateAhnentafel(personId, allPeopleMap);
-                 if (ahnentafelData) {
-                     renderTree('ahnentafel', ahnentafelData, personId);
-                 }
-            } else {
-                const viewKey = findRootViewKey(personId);
-                if (viewKey) {
-                    if (currentView !== viewKey) {
-                        renderTree(viewKey, null, personId);
-                    } else {
-                        const targetNode = root.descendants().find(n => n.data.id === personId);
-                        if (targetNode) {
-                            showPathAndCenter(targetNode);
-                        }
-                    }
+                const ahnentafelData = generateAhnentafel(personId, allPeopleMap);
+                if (ahnentafelData) {
+                    renderTree('ahnentafel', ahnentafelData, personId);
+                }
+                return;
+            }
+
+            // Stammbaum search logic
+            if (targetStamm && targetStamm !== 'ahnentafel') {
+                if (currentView !== targetStamm) {
+                    // Switch the view and then find the person
+                    renderTree(targetStamm, null, personId); 
                 } else {
-                    console.log(`Person with ID ${personId} not found in any main tree.`);
+                    // Person is in the current view, just find and show them
+                    findAndShowPerson(personId);
                 }
             }
         }
 
         // --- DETAIL PANEL LOGIC ---
         
-        function showDetailPanel(personData) {
-            const person = allPeopleMap.get(personData.id);
+        function positionDetailPanel(d) {
+            if (!d) return;
+            const transform = d3.zoomTransform(svg.node());
+            const [tx, ty] = transform.apply([d.x, d.y]);
+
+            const panelWidth = 350; // from CSS
+            const panelHeight = detailPanel.node().getBoundingClientRect().height;
+            const margin = 20;
+
+            let finalX = tx + margin;
+            let finalY = ty + margin;
+
+            if (finalX + panelWidth + margin > window.innerWidth) {
+                finalX = tx - panelWidth - margin;
+            }
+            if (finalY + panelHeight + margin > window.innerHeight) {
+                finalY = window.innerHeight - panelHeight - margin;
+            }
+            if (finalY < margin) {
+                finalY = margin;
+            }
+
+            detailPanel
+                .style('left', `${finalX}px`)
+                .style('top', `${finalY}px`);
+        }
+
+        function showDetailPanel(d) {
+            const person = allPeopleMap.get(d.data.id);
             if (!person) return;
 
-            // Build panel content
             let panelHTML = `
                 <div class="p-6">
                     <div class="flex items-center space-x-6">
-                        <img class="h-24 w-24 rounded-full object-cover ring-4 ring-sky-100" src="https://placehold.co/100x100/e0f2fe/0c4a6e?text=Foto" alt="Platzhalterbild">
+                        <img class="h-24 w-24 rounded-full object-cover ring-4 ring-sky-100" src="https://placehold.co/100x100/e0f2fe/0c4a6e?text=Foto" alt="Platzhalterbild" onerror="this.onerror=null;this.src='https://placehold.co/100x100/e0f2fe/0c4a6e?text=Foto';">
                         <div>
                             <h3 class="text-2xl font-bold text-slate-800">${person.name}</h3>
-                            <p class="text-slate-500 font-medium">Stamm ${findRootViewKey(person.id) || 'Unbekannt'}</p>
+                            <p class="text-slate-500 font-medium">Stamm ${personToStammMap.get(person.id).join(', ') || 'Unbekannt'}</p>
                         </div>
                     </div>
                     <div class="mt-6 border-t border-slate-200 pt-6">
                         <dl class="space-y-3 text-sm">`;
             
-            if (person.details.geboren) {
-                panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Geboren</dt><dd class="text-slate-700">${person.details.geboren}</dd></div>`;
-            }
-            if (person.details.gestorben) {
-                panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Gestorben</dt><dd class="text-slate-700">${person.details.gestorben}</dd></div>`;
-            }
-             if (person.spouseIds && person.spouseIds.length > 0) {
+            if (person.details.geboren) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Geboren</dt><dd class="text-slate-700">${person.details.geboren}</dd></div>`;
+            if (person.details.gestorben) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Gestorben</dt><dd class="text-slate-700">${person.details.gestorben}</dd></div>`;
+            if (person.spouseIds && person.spouseIds.length > 0) {
                 const spouses = person.spouseIds.map(id => allPeopleMap.get(id)).filter(Boolean);
-                panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Partner</dt><dd class="text-slate-700">${spouses.map(s => `<span class="detail-link" data-id="${s.id}">${s.name}</span>`).join('<br>')}</dd></div>`;
+                panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Partner</dt><dd class="text-slate-700">${spouses.map(s => `<span class="detail-link" data-id="${s.id}" data-stamm="${personToStammMap.get(s.id)[0]}">${s.name}</span>`).join('<br>')}</dd></div>`;
             }
-             if (person.details.info && person.details.info.toLowerCase().includes('heirat')) {
-                 panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Heirat</dt><dd class="text-slate-700">${person.details.info}</dd></div>`;
-             }
-
+            if (person.details.info) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Info</dt><dd class="text-slate-700">${person.details.info}</dd></div>`;
             panelHTML += `</dl>`;
 
             if (person.fatherId || person.motherId) {
-                panelHTML += `<div class="mt-4 border-t border-slate-200 pt-4">
-                                <h4 class="text-sm font-medium text-slate-500 mb-2">Eltern</h4>
-                                <dl class="space-y-3 text-sm">`;
+                panelHTML += `<div class="mt-4 border-t border-slate-200 pt-4"><h4 class="text-sm font-medium text-slate-500 mb-2">Eltern</h4><dl class="space-y-3 text-sm">`;
                 if(person.fatherId) {
                     const father = allPeopleMap.get(person.fatherId);
-                    if (father) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-400 flex-shrink-0">Vater</dt><dd class="text-slate-700"><span class="detail-link" data-id="${father.id}">${father.name}</span></dd></div>`;
+                    if (father) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-400 flex-shrink-0">Vater</dt><dd class="text-slate-700"><span class="detail-link" data-id="${father.id}" data-stamm="${personToStammMap.get(father.id)[0]}">${father.name}</span></dd></div>`;
                 }
                 if(person.motherId) {
                     const mother = allPeopleMap.get(person.motherId);
-                    if (mother) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-400 flex-shrink-0">Mutter</dt><dd class="text-slate-700"><span class="detail-link" data-id="${mother.id}">${mother.name}</span></dd></div>`;
+                    if (mother) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-400 flex-shrink-0">Mutter</dt><dd class="text-slate-700"><span class="detail-link" data-id="${mother.id}" data-stamm="${personToStammMap.get(mother.id)[0]}">${mother.name}</span></dd></div>`;
                 }
                 panelHTML += `</dl></div>`;
             }
@@ -1068,23 +1117,24 @@
             panelHTML += `</div>
                 <div class="p-6 bg-slate-50 rounded-b-xl border-t border-slate-200 flex justify-between text-sm font-medium text-sky-600 space-x-4">
                     <a href="#" class="hover:underline detail-link" data-action="ahnentafel" data-id="${person.id}">Ahnentafel zeigen</a>
-                    <a href="#" class="hover:underline detail-link" data-action="stammbaum" data-id="${person.id}">Zum Stammbaum</a>
                 </div>`;
 
             detailPanel.html(panelHTML);
+            positionDetailPanel(d);
             detailPanel.classed('visible', true);
 
-            // Add event listeners to the new links
             detailPanel.selectAll('.detail-link').on('click', function(event) {
                 event.preventDefault();
-                const targetId = this.dataset.id;
+                event.stopPropagation();
+                const targetId = parseInt(this.dataset.id);
                 const action = this.dataset.action;
+                const targetStamm = this.dataset.stamm;
+                
+                // Special handling for Ahnentafel links inside the panel
                 if (action === 'ahnentafel') {
-                    renderTree('ahnentafel', generateAhnentafel(parseInt(targetId), allPeopleMap), parseInt(targetId));
-                } else if (action === 'stammbaum') {
-                    navigateToPerson(parseInt(targetId));
+                     navigateToPerson(targetId, 'ahnentafel');
                 } else {
-                    navigateToPerson(parseInt(targetId));
+                    navigateToPerson(targetId, targetStamm);
                 }
             });
         }
@@ -1101,38 +1151,23 @@
             
             let data, title;
             const rootIds = { koller: 1, holl: 205, maier: 305 };
-            const titles = { koller: "Stammbaum Familie Koller", holl: "Stammbaum Familie Holl", maier: "Stammbaum Familie Maier" };
+            const titles = { koller: "Stammbaum Familie Koller", holl: "Stammbaum Familie Holl", maier: "Stammbaum Familie Maier", ahnentafel: "Ahnentafel" };
             
             initializeVisualization();
             hideDetailPanel();
-
-            const searchLabel = d3.select('#search-container label');
-            const depthControl = d3.select('#depth-control');
-
+            
             if (viewKey === 'ahnentafel') {
-                title = "Ahnentafel";
-                if(searchLabel.node()) searchLabel.text('Ahnentafel für:');
-                if(depthControl.node()) depthControl.style('display', 'none');
-
-                if (customData) {
-                    data = customData;
-                    title = `Ahnentafel ${data.name}`;
-                } else {
-                    data = generateAhnentafel(202, allPeopleMap);
-                    title = `Ahnentafel ${data.name}`;
-                }
+                const startPersonId = customData ? customData.id : (selectedNode ? selectedNode.data.id : 202);
+                data = customData || generateAhnentafel(startPersonId, allPeopleMap);
+                title = `Ahnentafel für ${data.name}`;
             } else {
-                if(searchLabel.node()) searchLabel.text('Person suchen:');
-                if(depthControl.node()) depthControl.style('display', 'flex');
-                
                 data = buildTreeFromFlatData(rootIds[viewKey], allPeopleMap);
                 title = titles[viewKey];
             }
             d3.select('#main-title').text(title);
             
             selectedNode = null;
-            maxVisibleDepth = (viewKey === 'ahnentafel') ? 10 : 2; 
-
+            
             if (!data) {
                 console.error("No data available for view:", viewKey);
                 g.append("text").attr("x", width/2).attr("y", height/2).attr("text-anchor", "middle").text("Daten für diese Ansicht nicht verfügbar.");
@@ -1140,43 +1175,39 @@
             }
 
             root = d3.hierarchy(data, d => d.children);
-            
-            const maxDataDepth = findMaxDepth(root) || 5;
-            
-            createControls(maxDataDepth);
-            
-            d3.select(`#view-${viewKey}`).property('checked', true);
-            d3.select('#depth-switch').property('value', maxVisibleDepth);
-            if (viewKey === 'ahnentafel') {
-                d3.select('#depth-control').style('display', 'none');
-            }
+            maxDataDepth = findMaxDepth(root);
+            currentVisibleDepth = 1;
 
+            createControls();
+            d3.select(`#view-${viewKey}`).property('checked', true);
+            
             root.x0 = width / 2;
             root.y0 = 0;
             
-            root.descendants().forEach(d => {
-                if (d.depth >= maxVisibleDepth) {
+            root.each(d => {
+                if (d.depth >= currentVisibleDepth) {
                     d._children = d.children;
                     d.children = null;
                 }
             });
             
-            flatData = root.descendants();
-            
             update(root);
             
-            const yOffset = (viewKey === 'ahnentafel') ? height / 2 : 120;
-            const scale = (viewKey === 'ahnentafel') ? 0.6 : 0.7;
+            const yOffset = 120;
+            const scale = 0.7;
             initialTransform = d3.zoomIdentity.translate(width / 2, yOffset).scale(scale);
             svg.call(zoom.transform, initialTransform);
 
             if (targetIdToSelect) {
-                setTimeout(() => {
-                    const targetNode = root.descendants().find(n => n.data.id === targetIdToSelect);
-                    if (targetNode) {
-                        showPathAndCenter(targetNode);
-                    }
-                }, 100);
+                if (viewKey === 'ahnentafel') {
+                    setTimeout(() => {
+                        centerOnNode(root);
+                    }, 100);
+                } else {
+                    setTimeout(() => {
+                        findAndShowPerson(targetIdToSelect);
+                    }, 100); 
+                }
             }
         }
 
@@ -1185,6 +1216,8 @@
         renderTree('koller');
 
         window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
             const currentView = d3.select('input[name="view"]:checked').node().value;
             renderTree(currentView);
         });
