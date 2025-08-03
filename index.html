@@ -187,6 +187,18 @@
                         <button id="level-plus-button" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 font-bold">+</button>
                     </div>
                 </div>
+                 <!-- Vertical Layout Control -->
+                <div class="flex items-center justify-between border-t border-slate-200 pt-3 mt-3">
+                    <span class="text-sm font-semibold text-slate-600" title="Ab dieser Generation wird der Baum platzsparend vertikal dargestellt. '-' deaktiviert die Funktion.">Vertikal ab Gen.</span>
+                    <div class="flex items-center space-x-2">
+                        <button id="vertical-reset-button" title="Vertikale Ansicht deaktivieren" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+                        </button>
+                        <button id="vertical-minus-button" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 font-bold">-</button>
+                        <span id="vertical-display" class="font-bold w-4 text-center">-</span>
+                        <button id="vertical-plus-button" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 font-bold">+</button>
+                    </div>
+                </div>
                  <!-- Selection Info -->
                 <div id="selection-info" class="border-t border-slate-200 pt-2 text-sm">
                     <!-- JS will populate this -->
@@ -205,13 +217,19 @@
         // =================================================================
         // ======================= CHANGELOG ===============================
         // =================================================================
-        // Version 5:
-        // 1. GEÄNDERT: Label "Eingeblendete Generationen" zurück zu "Generation" geändert.
-        // 2. WIEDERHERGESTELLT & VERBESSERT: Die Generationsanzeige wird jetzt wieder dynamisch
-        //    beim Klicken auf Knoten aktualisiert.
-        //    - Klick zum Erweitern: Zeigt die Generation der neu sichtbaren Kinder an.
-        //    - Klick zum Kollabieren: Zeigt die Generation des angeklickten Knotens an.
-        //    - Dies funktioniert jetzt parallel zur globalen Steuerung über die +/- Tasten.
+        // Version 9:
+        // 1. NEU & VERBESSERT: Die `treeLayout` Logik wurde durch eine `separation` Funktion erweitert.
+        //    Diese Funktion berechnet dynamisch den Abstand zwischen Geschwisterknoten.
+        //    Wenn ein Knoten vertikale Nachkommen hat, wird sein "Platzbedarf" vergrößert,
+        //    sodass die anderen Geschwister automatisch weiterrücken, um Überlappungen zu vermeiden.
+        //    Dies löst das Problem der großen Lücken und sorgt für eine kompakte, aber lesbare Darstellung.
+        // =================================================================
+        // Version 8:
+        // 1. KORRIGIERT: Die vertikale Ausrichtung der Namen zu den Knotenpunkten wurde durch
+        //    Verwendung des `dy`-Attributs korrigiert.
+        // 2. GEÄNDERT: Der "Vertikal ab Gen."-Selektor startet jetzt standardmäßig mit einem "-" (intern 99).
+        //    Ein Klick auf "+" startet die Zählung bei 0.
+        // 3. KORRIGIERT: Der Reset-Button für die vertikale Ansicht setzt die Anzeige jetzt korrekt auf "-" zurück.
         // =================================================================
 
         // --- DATA SECTION ---
@@ -553,11 +571,37 @@
         let svg, g, zoom, detailPanel;
         let root, selectedNode, initialTransform, hideDetailPanelTimer;
         let maxDataDepth = 0;
+        let verticalLayoutFromGeneration = 99; // Prototype: Start disabled
         const allPeopleMap = new Map();
         const personToStammMap = new Map();
         let width = window.innerWidth;
         let height = window.innerHeight;
-        const treeLayout = d3.tree().nodeSize([160, 220]);
+        
+        // REVISED: The tree layout now has a dynamic separation function
+        const treeLayout = d3.tree()
+            .nodeSize([120, 240]) // Adjusted nodeSize for better base spacing
+            .separation((a, b) => {
+                if (a.parent !== b.parent) {
+                    return 1;
+                }
+                
+                // A function to check if a subtree will be rendered vertically
+                const isVertical = (node) => (node.children && node.depth + 1 >= verticalLayoutFromGeneration);
+
+                // If both subtrees are compact (either single nodes or vertical), keep them close
+                if ((!a.children || isVertical(a)) && (!b.children || isVertical(b))) {
+                    return 1.2;
+                }
+
+                // If one is vertical and the other is not, give them more space
+                if (isVertical(a) !== isVertical(b)) {
+                    return 2;
+                }
+                
+                // Default for two horizontal subtrees
+                return 1.5;
+            });
+
 
         // --- DATA PROCESSING ---
 
@@ -726,11 +770,46 @@
             // The number of levels is the highest depth index + 1.
             return max + 1;
         }
+
         
         function update(source) {
             const duration = 500;
             
-            const treeData = treeLayout(root);
+            let treeData = treeLayout(root);
+
+            // If vertical layout is active, run the post-processing layout function
+            if (verticalLayoutFromGeneration < 99) {
+                
+                function traverseAndLayout(node) {
+                    if (!node) return;
+                    if (node.depth >= verticalLayoutFromGeneration - 1) { // Start adjusting from the parent of the vertical generation
+                        let startY = node.y + 150;
+                        if (node.children) {
+                            node.children.forEach(child => {
+                                startY = layoutChild(child, node.x + 100, startY);
+                            });
+                        }
+                    } else if (node.children) {
+                        node.children.forEach(traverseAndLayout);
+                    }
+                }
+
+                function layoutChild(node, xPos, yPos) {
+                    const verticalNodeSpacing = 80;
+                    node.x = xPos;
+                    node.y = yPos;
+                    let currentY = yPos + verticalNodeSpacing;
+                    if (node.children) {
+                        node.children.forEach(child => {
+                            currentY = layoutChild(child, xPos + 50, currentY);
+                        });
+                    }
+                    return currentY;
+                }
+                traverseAndLayout(root);
+            }
+
+
             let nodes = treeData.descendants();
             let links = treeData.links();
 
@@ -738,7 +817,7 @@
 
             const nodeEnter = node.enter().append("g")
                 .attr("class", "node")
-                .attr("transform", d => `translate(${source.x0},${source.y0})`)
+                .attr("transform", d => `translate(${source.x0 || source.x},${source.y0 || source.y})`)
                 .on("click", (event, d) => {
                     event.stopPropagation();
                     hideDetailPanel();
@@ -788,8 +867,11 @@
             
             nodeUpdate.select("text").transition().duration(duration)
                 .attr("x", 0)
-                .attr("y", 30)
-                .attr("text-anchor", "middle");
+                .attr("y", d => d.depth >= verticalLayoutFromGeneration ? 0 : 30)
+                .attr("dy", d => d.depth >= verticalLayoutFromGeneration ? "0.35em" : null)
+                .attr("text-anchor", d => d.depth >= verticalLayoutFromGeneration ? "start" : "middle")
+                .attr("dx", d => d.depth >= verticalLayoutFromGeneration ? "1.5em" : "0");
+
 
             nodeUpdate.select("circle").transition().duration(duration).attr("r", 10)
                 .style("fill", d => d._children ? "#0ea5e9" : "#fff");
@@ -804,12 +886,17 @@
             const linkEnter = link.enter().insert("path", "g")
                 .attr("class", "link")
                 .attr("d", d => {
-                    const o = { x: source.x0, y: source.y0 };
+                    const o = { x: source.x0 || source.x, y: source.y0 || source.y};
                     return elbow(o, o);
                 });
 
             linkEnter.merge(link).transition().duration(duration)
-                .attr("d", d => elbow(d.source, d.target));
+                .attr("d", d => {
+                    if (d.target.depth >= verticalLayoutFromGeneration) {
+                        return verticalElbow(d.source, d.target);
+                    }
+                    return elbow(d.source, d.target);
+                });
 
             link.exit().transition().duration(duration)
                 .attr("d", d => {
@@ -823,6 +910,13 @@
         
         function elbow(s, d) {
             return `M${s.x},${s.y}V${(s.y + d.y) / 2}H${d.x}V${d.y}`;
+        }
+
+        /**
+        * NEW: Link generator for vertical layout parts.
+        */
+        function verticalElbow(s, d) {
+            return `M${s.x},${s.y} L${s.x},${d.y} L${d.x},${d.y}`;
         }
 
         function highlightBranch(d) {
@@ -1129,6 +1223,40 @@
 
             // Reset Button
             d3.select('#reset-button').on('click', handleReset);
+
+            // REVISED: Vertical Layout Control
+            d3.select('#vertical-plus-button').on('click', () => {
+                let currentVal = d3.select('#vertical-display').text();
+                let nextVal;
+                
+                if (currentVal === '-') {
+                    nextVal = 0;
+                } else {
+                    currentVal = parseInt(currentVal);
+                    if (currentVal < maxDataDepth - 1) {
+                         nextVal = currentVal + 1;
+                    } else {
+                        return; // Already at max
+                    }
+                }
+                verticalLayoutFromGeneration = nextVal;
+                d3.select('#vertical-display').text(verticalLayoutFromGeneration);
+                update(root);
+            });
+            d3.select('#vertical-minus-button').on('click', () => {
+                let currentVal = parseInt(d3.select('#vertical-display').text());
+                if (isNaN(currentVal) || currentVal <= 0) return; // Cant go lower than 0
+                
+                verticalLayoutFromGeneration = currentVal - 1;
+                d3.select('#vertical-display').text(verticalLayoutFromGeneration);
+                update(root);
+            });
+            d3.select('#vertical-reset-button').on('click', () => {
+                verticalLayoutFromGeneration = 99;
+                d3.select('#vertical-display').text('-');
+                update(root);
+            });
+
             
             // Menu Toggle
             const fabToggle = document.getElementById('fab-toggle');
@@ -1187,7 +1315,11 @@
             root.x0 = width / 2;
             root.y0 = 0;
             
-            // REVISED: Use the new centralized function to set the initial tree depth
+            // REVISED: Reset vertical layout to default 'off' state
+            verticalLayoutFromGeneration = 99;
+            d3.select('#vertical-display').text('-');
+            
+            // Set initial tree depth
             setTreeDepth(1); // Show Gen 0 and 1 by default
             
             const yOffset = 120;
