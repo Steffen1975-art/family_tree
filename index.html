@@ -177,7 +177,7 @@
                 </div>
                 <!-- Level Control -->
                 <div class="flex items-center justify-between">
-                    <span class="text-sm font-semibold text-slate-600" title="Die Zählung beginnt mit Generation 0 für den obersten Vorfahren.">Generation</span>
+                    <span class="text-sm font-semibold text-slate-600" title="Steuert die maximal eingeblendete Generation global für den ganzen Baum.">Generation</span>
                     <div class="flex items-center space-x-2">
                         <button id="reset-button" title="Ansicht zurücksetzen" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600">
                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
@@ -202,6 +202,18 @@
 
 
     <script>
+        // =================================================================
+        // ======================= CHANGELOG ===============================
+        // =================================================================
+        // Version 5:
+        // 1. GEÄNDERT: Label "Eingeblendete Generationen" zurück zu "Generation" geändert.
+        // 2. WIEDERHERGESTELLT & VERBESSERT: Die Generationsanzeige wird jetzt wieder dynamisch
+        //    beim Klicken auf Knoten aktualisiert.
+        //    - Klick zum Erweitern: Zeigt die Generation der neu sichtbaren Kinder an.
+        //    - Klick zum Kollabieren: Zeigt die Generation des angeklickten Knotens an.
+        //    - Dies funktioniert jetzt parallel zur globalen Steuerung über die +/- Tasten.
+        // =================================================================
+
         // --- DATA SECTION ---
         const peopleData = [
             // =================================================
@@ -540,7 +552,6 @@
         // Global variables
         let svg, g, zoom, detailPanel;
         let root, selectedNode, initialTransform, hideDetailPanelTimer;
-        let currentVisibleDepth = 1; // Start at level 1
         let maxDataDepth = 0;
         const allPeopleMap = new Map();
         const personToStammMap = new Map();
@@ -668,32 +679,44 @@
         
         // --- D3 UPDATE LOGIC ---
         
-        function changeTreeDepth(delta) {
-            let newDepth = currentVisibleDepth + delta;
-            if (newDepth < 0) newDepth = 0; // Level 0 is the minimum
-            if (newDepth > maxDataDepth -1) newDepth = maxDataDepth -1; // Max depth index
+        /**
+         * REVISED: Sets the tree to a specific generation depth globally.
+         * @param {number} targetGen - The 0-indexed generation to show. 0 = root only.
+         */
+        function setTreeDepth(targetGen) {
+            if (!root || targetGen < 0 || targetGen >= maxDataDepth) {
+                return; // Prevent invalid depth levels
+            }
             
-            currentVisibleDepth = newDepth;
-            d3.select('#level-display').text(currentVisibleDepth);
-
+            // This function now enforces a uniform depth across the entire tree.
             root.each(d => {
-                 if (d.depth < currentVisibleDepth) {
+                // Expand nodes that are shallower than the target generation.
+                if (d.depth < targetGen) {
                     if (d._children) {
                         d.children = d._children;
                         d._children = null;
                     }
-                } else {
-                    if (d.children) {
-                        d._children = d.children;
+                } 
+                // Collapse nodes at the target generation level and deeper.
+                else {
+                    // Combine children and _children before collapsing to not lose any nodes
+                    let allChildren = [];
+                    if (d.children) allChildren = allChildren.concat(d.children);
+                    if (d._children) allChildren = allChildren.concat(d._children);
+
+                    if (allChildren.length > 0) {
+                        d._children = allChildren;
                         d.children = null;
                     }
                 }
             });
+
+            d3.select('#level-display').text(targetGen);
             update(root);
         }
 
         /**
-         * CORRECTED: Calculates the correct number of levels based on the user's expectation.
+         * Calculates the correct number of levels based on the user's expectation.
          */
         function findMaxDepth(node) {
             let max = 0;
@@ -719,18 +742,35 @@
                 .on("click", (event, d) => {
                     event.stopPropagation();
                     hideDetailPanel();
-                    
-                    // Update selection info on regular click
                     centerOnNode(d);
 
+                    // If node is currently expanded, collapse it and all its children.
                     if (d.children) {
                         d._children = d.children;
                         d.children = null;
-                    } else {
+                        // Update display to the depth of the collapsed node
+                        d3.select('#level-display').text(d.depth);
+                    } 
+                    // If node is collapsed but has children to show, expand only the next level.
+                    else if (d._children) {
                         d.children = d._children;
                         d._children = null;
+
+                        // And collapse the next level down to ensure one-level expansion
+                        d.children.forEach(child => {
+                            let allGrandChildren = [];
+                            if (child.children) allGrandChildren = allGrandChildren.concat(child.children);
+                            if (child._children) allGrandChildren = allGrandChildren.concat(child._children);
+                            
+                            if(allGrandChildren.length > 0) {
+                                child._children = allGrandChildren;
+                                child.children = null;
+                            }
+                        });
+                        // Update display to the depth of the newly visible children
+                        d3.select('#level-display').text(d.depth + 1);
                     }
-                    update(d);
+                    update(d); // Redraw the tree with the new structure
                 })
                 .on("mouseover", (event, d) => {
                     clearTimeout(hideDetailPanelTimer);
@@ -814,9 +854,6 @@
 
         // --- EVENT HANDLERS ---
         
-        /**
-         * UPDATED: Centers the view on a node. Now handles Ahnentafel root differently for top-centering.
-         */
         function centerOnNode(d) {
             const currentView = d3.select('.view-btn.active').attr('data-view');
             const isAhnentafelRoot = d.parent === null && currentView === 'ahnentafel';
@@ -886,17 +923,19 @@
             });
         }
         
+        /**
+         * REVISED: Reset button now reliably uses the setTreeDepth function.
+         */
         function handleReset() {
             d3.select('#selection-info').html(''); // Clear selection info
-            const currentView = d3.select('.view-btn.active').attr('data-view');
-            renderTree(currentView);
+            setTreeDepth(1); // Set tree to show Gen 0 and 1
+            
+            // Also reset the zoom/pan to the initial state
+            if(initialTransform) {
+                 svg.transition().duration(750).call(zoom.transform, initialTransform);
+            }
         }
         
-        /**
-         * FINAL VERSION: This function now reliably finds a person.
-         * It uses a temporary, complete hierarchy to find the path,
-         * ensuring that even hidden nodes can be found and revealed correctly.
-         */
         function findAndShowPerson(personId) {
             const currentView = d3.select('.view-btn.active').attr('data-view');
             const rootIds = { koller: 1, holl: 205, maier: 305 };
@@ -922,7 +961,7 @@
                          if (d._children) {
                             d.children = d._children;
                             d._children = null;
-                        }
+                         }
                     }
                 });
                 
@@ -1078,9 +1117,15 @@
             // Search
             d3.select('#search-input').on('input', handleSearch);
 
-            // Level Control
-            d3.select('#level-plus-button').on('click', () => changeTreeDepth(1));
-            d3.select('#level-minus-button').on('click', () => changeTreeDepth(-1));
+            // REVISED: Level Control
+            d3.select('#level-plus-button').on('click', () => {
+                const currentGen = parseInt(d3.select('#level-display').text());
+                setTreeDepth(currentGen + 1);
+            });
+            d3.select('#level-minus-button').on('click', () => {
+                const currentGen = parseInt(d3.select('#level-display').text());
+                setTreeDepth(currentGen - 1);
+            });
 
             // Reset Button
             d3.select('#reset-button').on('click', handleReset);
@@ -1131,9 +1176,7 @@
 
             root = d3.hierarchy(data, d => d.children);
             maxDataDepth = findMaxDepth(root);
-            currentVisibleDepth = 1; // Default to showing Gen 0 and 1
-            d3.select('#level-display').text(currentVisibleDepth);
-
+            
             // Update active button in menu
             d3.selectAll('.view-btn').classed('active', false).classed('bg-slate-100', true);
             d3.selectAll('.view-btn-ahnen').classed('active', false);
@@ -1144,14 +1187,8 @@
             root.x0 = width / 2;
             root.y0 = 0;
             
-            root.each(d => {
-                if (d.depth >= currentVisibleDepth) { // Collapse nodes deeper than the visible depth
-                    d._children = d.children;
-                    d.children = null;
-                }
-            });
-            
-            update(root);
+            // REVISED: Use the new centralized function to set the initial tree depth
+            setTreeDepth(1); // Show Gen 0 and 1 by default
             
             const yOffset = 120;
             const scale = 0.7;
