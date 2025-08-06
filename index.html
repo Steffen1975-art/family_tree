@@ -106,7 +106,7 @@
             width: 350px;
             background-color: white;
             border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
             border: 1px solid #e2e8f0;
             opacity: 0;
             pointer-events: none;
@@ -204,14 +204,29 @@
         // =================================================================
         // ======================= CHANGELOG ===============================
         // =================================================================
+        // Version 17:
+        // 1. KORRIGIERT: Das initiale Zoom-Verhalten wurde korrigiert. Der Stammbaum wird nun
+        //    beim ersten Laden und beim Zurücksetzen korrekt zentriert, sodass keine Personen
+        //    mehr am Bildschirmrand abgeschnitten werden.
+        // 2. VERBESSERT: Die `zoomToFit`-Logik berechnet den sichtbaren Bereich nun präziser
+        //    anhand der Ränder der Personenkarten, was zu einer besseren Darstellung führt.
+        //
+        // Version 16:
+        // 1. VERBESSERT: Das Zoom-Verhalten bei der Benutzung des Generationen-Selektors
+        //    wurde optimiert. Die Ansicht zentriert und skaliert sich nun automatisch,
+        //    um alle sichtbaren Personen optimal darzustellen.
+        // 2. VERBESSERT: Die Detailkarte erscheint nun mit einer leichten Verzögerung (500ms),
+        //    um ein versehentliches Auslösen beim Überfahren der Knoten zu verhindern.
+        // 3. VERBESSERT: Die Detailkarte ist nun näher an der Personenkarte positioniert.
+        // 4. VERBESSERT: Die Detailkarte bleibt nun sichtbar, wenn man mit der Maus von der
+        //    Personenkarte direkt auf die Detailkarte wechselt, was die Interaktion erleichtert.
+        //
         // Version 15:
         // 1. KORRIGIERT: Die Logik für die vertikale Ausrichtung wurde grundlegend überarbeitet,
-        //    um das Problem der "springenden" Linien zu beheben. Alle Kinder eines Zweiges
-        //    werden nun korrekt untereinander und rechts vom Elternteil positioniert.
+        //    um das Problem der "springenden" Linien zu beheben.
         // 2. KORRIGIERT: Die `verticalElbow` Funktion wurde angepasst, um die Linienführung
-        //    im vertikalen Modus konsistent und korrekt darzustellen (Elternteil -> linke Mitte des Kindes).
-        // 3. VERBESSERT: Die Klick-Logik des An/Aus-Schalters für die vertikale Ansicht
-        //    wurde korrigiert und ist nun intuitiv (Häkchen zum Aktivieren, X zum Deaktivieren).
+        //    im vertikalen Modus konsistent darzustellen.
+        // 3. VERBESSERT: Die Klick-Logik des Schalters für die vertikale Ansicht wurde korrigiert.
         // =================================================================
         // --- DATA SECTION (shortened for brevity) ---
         const peopleData = [
@@ -544,13 +559,14 @@
              { id: 314, name: "Wolfgang Maier", details: { info: "verh. mit Rose Mögenthaler" }, fatherId: 306, spouseIds: [312] },
             
              { id: 300, name: "Mareike Koller (geb. Maier)", details: { geboren: "18.11.1981", info: "Heirat 03.06.2011 mit Steffen Koller." }, fatherId: 311, motherId: 310, spouseIds: [202], childrenIds: [301, 302, 303, 304] },
-        ];
+         ];
 
         // --- D3.js Visualization Code ---
         
         // Global variables
         let svg, g, zoom, detailPanel;
-        let root, selectedNode, initialTransform, hideDetailPanelTimer;
+        let root, selectedNode, initialTransform;
+        let showDetailPanelTimer, hideDetailPanelTimer;
         let maxDataDepth = 0;
         let verticalLayoutFromGeneration = 99; // 99 means disabled
         const allPeopleMap = new Map();
@@ -649,8 +665,8 @@
                 .scaleExtent([0.1, 3])
                 .on("zoom", (event) => {
                     g.attr("transform", event.transform);
-                    if (detailPanel.classed('visible') && selectedNode) {
-                        positionDetailPanel(selectedNode);
+                    if (detailPanel.classed('visible')) {
+                        if (selectedNode) positionDetailPanel(selectedNode);
                     }
                 });
 
@@ -676,6 +692,8 @@
 
             d3.select('#level-display').text(targetGen);
             update(root);
+            // Wait for the transition to finish before zooming
+            setTimeout(() => zoomToFit(), 550);
         }
 
         function findMaxDepth(node) {
@@ -738,6 +756,7 @@
                 .attr("transform", d => `translate(${source.x0 || source.x},${source.y0 || source.y})`)
                 .on("click", (event, d) => {
                     event.stopPropagation();
+                    clearTimeout(showDetailPanelTimer);
                     hideDetailPanel();
                     centerOnNode(d);
                     if (d.children) {
@@ -758,8 +777,18 @@
                     }
                     update(d);
                 })
-                .on("mouseover", (event, d) => { clearTimeout(hideDetailPanelTimer); showDetailPanel(d); })
-                .on("mouseout", () => { hideDetailPanelTimer = setTimeout(hideDetailPanel, 300); });
+                .on("mouseover", (event, d) => {
+                    clearTimeout(hideDetailPanelTimer);
+                    clearTimeout(showDetailPanelTimer);
+                    showDetailPanelTimer = setTimeout(() => {
+                        selectedNode = d; // Set selectedNode for panel positioning
+                        showDetailPanel(d);
+                    }, 500); // 500ms delay
+                })
+                .on("mouseout", () => {
+                    clearTimeout(showDetailPanelTimer);
+                    hideDetailPanelTimer = setTimeout(hideDetailPanel, 300);
+                });
 
             nodeEnter.append("foreignObject")
                 .attr("width", cardWidth)
@@ -837,6 +866,58 @@
             });
         }
 
+        // --- UTILITY FUNCTIONS ---
+        
+        /**
+         * Recursively collects all visible nodes (nodes that are not collapsed).
+         * @param {object} node The starting d3 hierarchy node.
+         * @returns {Array} A flat array of visible node objects.
+         */
+        function getVisibleNodes(node) {
+            let nodes = [];
+            function recurse(n) {
+                nodes.push(n);
+                if (n.children) {
+                    n.children.forEach(recurse);
+                }
+            }
+            recurse(node);
+            return nodes;
+        }
+
+        function zoomToFit(duration = 750) {
+            const visibleNodes = getVisibleNodes(root);
+            if (visibleNodes.length === 0) return;
+
+            const minX = d3.min(visibleNodes, d => d.x - cardWidth / 2);
+            const maxX = d3.max(visibleNodes, d => d.x + cardWidth / 2);
+            const minY = d3.min(visibleNodes, d => d.y - cardHeight / 2);
+            const maxY = d3.max(visibleNodes, d => d.y + cardHeight / 2);
+
+            const boundsWidth = maxX - minX;
+            const boundsHeight = maxY - minY;
+            
+            if(boundsWidth <= 0 || boundsHeight <= 0) return;
+
+            const midX = minX + boundsWidth / 2;
+            const midY = minY + boundsHeight / 2;
+            
+            const padding = 1.2; // Add 20% padding
+            const scale = Math.min(width / (boundsWidth * padding), height / (boundsHeight * padding));
+            
+            const translateX = width / 2 - midX * scale;
+            const translateY = height / 2 - midY * scale;
+
+            const transform = d3.zoomIdentity.translate(translateX, translateY).scale(scale);
+            
+            if(!isFinite(scale) || isNaN(translateX) || isNaN(translateY)) {
+                console.warn("zoomToFit produced invalid transform. Skipping.");
+                return;
+            }
+
+            svg.transition().duration(duration).call(zoom.transform, transform);
+        }
+
         // --- EVENT HANDLERS ---
         
         function centerOnNode(d) {
@@ -898,10 +979,9 @@
         
         function handleReset() {
             d3.select('#selection-info').html('');
-            setTreeDepth(1);
-            if(initialTransform) {
-                 svg.transition().duration(750).call(zoom.transform, initialTransform);
-            }
+            selectedNode = null;
+            highlightBranch(null);
+            setTreeDepth(1); // This will now also trigger zoomToFit
         }
         
         function findAndShowPerson(personId) {
@@ -951,12 +1031,15 @@
             const [tx, ty] = transform.apply([d.x, d.y]);
             const panelWidth = 350;
             const panelHeight = detailPanel.node().getBoundingClientRect().height;
-            const margin = 20;
-            let finalX = tx + cardWidth / 2 + margin;
+            const margin = 15; // Reduced margin for closer positioning
+            let finalX = tx + (cardWidth / 2) * transform.k + margin;
             let finalY = ty - panelHeight / 2;
-            if (finalX + panelWidth + margin > window.innerWidth) { finalX = tx - cardWidth / 2 - panelWidth - margin; }
+            
+            // Adjust if panel goes off-screen
+            if (finalX + panelWidth + margin > window.innerWidth) { finalX = tx - ((cardWidth / 2) * transform.k) - panelWidth - margin; }
             if (finalY + panelHeight + margin > window.innerHeight) { finalY = window.innerHeight - panelHeight - margin; }
             if (finalY < margin) { finalY = margin; }
+            
             detailPanel.style('left', `${finalX}px`).style('top', `${finalY}px`);
         }
 
@@ -989,8 +1072,8 @@
             }
             panelHTML += `</div><div class="p-6 bg-slate-50 rounded-b-xl border-t border-slate-200 flex justify-between text-sm font-medium text-sky-600 space-x-4"><a href="#" class="hover:underline detail-link" data-action="ahnentafel" data-id="${person.id}">Ahnentafel zeigen</a></div>`;
             detailPanel.html(panelHTML);
-            positionDetailPanel(d);
             detailPanel.classed('visible', true);
+            positionDetailPanel(d); // Position after content is set and panel is visible
             detailPanel.selectAll('.detail-link').on('click', function(event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -1031,12 +1114,12 @@
 
                 if (isCurrentlyActive) { // It's ON, let's turn it OFF
                     verticalIconCheck.classed('hidden', false); // Show check (activate icon)
-                    verticalIconX.classed('hidden', true);      // Hide X (deactivate icon)
+                    verticalIconX.classed('hidden', true);     // Hide X (deactivate icon)
                     verticalControlsContainer.classed('hidden', true); // Hide controls
                     verticalLayoutFromGeneration = 99;
                 } else { // It's OFF, let's turn it ON
-                    verticalIconCheck.classed('hidden', true);       // Hide check
-                    verticalIconX.classed('hidden', false);      // Show X
+                    verticalIconCheck.classed('hidden', true);     // Hide check
+                    verticalIconX.classed('hidden', false);    // Show X
                     verticalControlsContainer.classed('hidden', false); // Show controls
                     // The highest generation that can be a parent is maxDataDepth - 2
                     // For a tree of depth 5 (maxDataDepth=6), this would be generation 4.
@@ -1117,12 +1200,15 @@
             d3.select('#vertical-controls-container').classed('hidden', true);
 
             setTreeDepth(1);
-            const scale = 0.6;
-            initialTransform = d3.zoomIdentity.translate(width / 2, 150).scale(scale);
-            svg.call(zoom.transform, initialTransform);
+            
             if (targetIdToSelect) {
-                if (viewKey === 'ahnentafel') { setTimeout(() => { centerOnNode(root); }, 100); } 
-                else { setTimeout(() => { findAndShowPerson(targetIdToSelect); }, 100); }
+                setTimeout(() => {
+                    if (viewKey === 'ahnentafel') { 
+                        centerOnNode(root); 
+                    } else { 
+                        findAndShowPerson(targetIdToSelect); 
+                    }
+                }, 550);
             }
         }
 
