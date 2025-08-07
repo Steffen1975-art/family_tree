@@ -204,6 +204,11 @@
         // =================================================================
         // ======================= CHANGELOG ===============================
         // =================================================================
+        // Version 18:
+        // 1. VERBESSERT: Die `zoomToFit`-Funktion berücksichtigt nun den Platz, den der Titel
+        //    am oberen Bildschirmrand einnimmt. Dadurch wird der Stammbaum beim initialen
+        //    Laden und nach einem Reset korrekt zentriert und nicht mehr abgeschnitten.
+        //
         // Version 17:
         // 1. KORRIGIERT: Das initiale Zoom-Verhalten wurde korrigiert. Der Stammbaum wird nun
         //    beim ersten Laden und beim Zurücksetzen korrekt zentriert, sodass keine Personen
@@ -213,19 +218,15 @@
         //
         // Version 16:
         // 1. VERBESSERT: Das Zoom-Verhalten bei der Benutzung des Generationen-Selektors
-        //    wurde optimiert. Die Ansicht zentriert und skaliert sich nun automatisch,
-        //    um alle sichtbaren Personen optimal darzustellen.
-        // 2. VERBESSERT: Die Detailkarte erscheint nun mit einer leichten Verzögerung (500ms),
-        //    um ein versehentliches Auslösen beim Überfahren der Knoten zu verhindern.
+        //    wurde optimiert. Die Ansicht zentriert und skaliert sich nun automatisch.
+        // 2. VERBESSERT: Die Detailkarte erscheint nun mit einer leichten Verzögerung (500ms).
         // 3. VERBESSERT: Die Detailkarte ist nun näher an der Personenkarte positioniert.
         // 4. VERBESSERT: Die Detailkarte bleibt nun sichtbar, wenn man mit der Maus von der
-        //    Personenkarte direkt auf die Detailkarte wechselt, was die Interaktion erleichtert.
+        //    Personenkarte direkt auf die Detailkarte wechselt.
         //
         // Version 15:
-        // 1. KORRIGIERT: Die Logik für die vertikale Ausrichtung wurde grundlegend überarbeitet,
-        //    um das Problem der "springenden" Linien zu beheben.
-        // 2. KORRIGIERT: Die `verticalElbow` Funktion wurde angepasst, um die Linienführung
-        //    im vertikalen Modus konsistent darzustellen.
+        // 1. KORRIGIERT: Die Logik für die vertikale Ausrichtung wurde grundlegend überarbeitet.
+        // 2. KORRIGIERT: Die `verticalElbow` Funktion wurde angepasst.
         // 3. VERBESSERT: Die Klick-Logik des Schalters für die vertikale Ansicht wurde korrigiert.
         // =================================================================
         // --- DATA SECTION (shortened for brevity) ---
@@ -886,6 +887,7 @@
         }
 
         function zoomToFit(duration = 750) {
+            const topOffset = 80; // Estimated height of the header area in pixels
             const visibleNodes = getVisibleNodes(root);
             if (visibleNodes.length === 0) return;
 
@@ -903,10 +905,14 @@
             const midY = minY + boundsHeight / 2;
             
             const padding = 1.2; // Add 20% padding
-            const scale = Math.min(width / (boundsWidth * padding), height / (boundsHeight * padding));
             
+            // Calculate scale based on the available drawing area (full width, height minus offset)
+            const availableHeight = height - topOffset;
+            const scale = Math.min(width / (boundsWidth * padding), availableHeight / (boundsHeight * padding));
+            
+            // Center the content in the visible area
             const translateX = width / 2 - midX * scale;
-            const translateY = height / 2 - midY * scale;
+            const translateY = (availableHeight / 2 + topOffset) - midY * scale;
 
             const transform = d3.zoomIdentity.translate(translateX, translateY).scale(scale);
             
