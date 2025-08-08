@@ -1,0 +1,29 @@
+{
+  "maier_wolfgang_family_tree": {
+    "count": 22,
+    "people": [
+      { "id": 2000, "name": "Ernst Maier", "details": {}, "spouseIds": [2001], "childrenIds": [2003, 2002] },
+      { "id": 2001, "name": "Berta Maier", "details": {}, "spouseIds": [2000], "childrenIds": [2003, 2002] },
+      { "id": 2002, "name": "Wolfgang Maier", "details": {}, "fatherId": 2000, "motherId": 2001, "spouseIds": [1003], "childrenIds": [2005, 2006] },
+      { "id": 2003, "name": "Erwin Maier", "details": {}, "fatherId": 2000, "motherId": 2001, "spouseIds": [2007], "childrenIds": [2008, 2009] },
+      { "id": 2004, "name": "Rolf Maier", "details": {}, "spouseIds": [1004], "childrenIds": [1008, 1009, 1010, 300] },
+      { "id": 2005, "name": "Christof Maier", "details": {}, "fatherId": 2002, "motherId": 1003, "spouseIds": [2010], "childrenIds": [2011, 2012, 2013] },
+      { "id": 2006, "name": "Fabian Maier", "details": {}, "fatherId": 2002, "motherId": 1003, "spouseIds": [2014], "childrenIds": [2015, 2016, 2017] },
+      { "id": 2007, "name": "Elfriede Maier", "details": {}, "spouseIds": [2003], "childrenIds": [2008, 2009] },
+      { "id": 2008, "name": "Sibylle (geb. Maier)", "details": {}, "fatherId": 2003, "motherId": 2007, "spouseIds": [2018], "childrenIds": [2019, 2020] },
+      { "id": 2009, "name": "Felix Maier", "details": {}, "fatherId": 2003, "motherId": 2007, "childrenIds": [2021] },
+      { "id": 2010, "name": "Bärbel Maier", "details": {}, "spouseIds": [2005], "childrenIds": [2011, 2012, 2013] },
+      { "id": 2011, "name": "Matthias Maier", "details": {}, "fatherId": 2005, "motherId": 2010 },
+      { "id": 2012, "name": "Simon Maier", "details": {}, "fatherId": 2005, "motherId": 2010 },
+      { "id": 2013, "name": "Katharina Maier", "details": {}, "fatherId": 2005, "motherId": 2010 },
+      { "id": 2014, "name": "Silke Maier", "details": {}, "spouseIds": [2006], "childrenIds": [2015, 2016, 2017] },
+      { "id": 2015, "name": "Yannik Maier", "details": {}, "fatherId": 2006, "motherId": 2014 },
+      { "id": 2016, "name": "Tjorben Maier", "details": {}, "fatherId": 2006, "motherId": 2014 },
+      { "id": 2017, "name": "Lennart Maier", "details": {}, "fatherId": 2006, "motherId": 2014 },
+      { "id": 2018, "name": "Thorsten", "details": {}, "spouseIds": [2008], "childrenIds": [2019, 2020] },
+      { "id": 2019, "name": "Anna", "details": {}, "fatherId": 2018, "motherId": 2008 },
+      { "id": 2020, "name": "Jakob", "details": {}, "fatherId": 2018, "motherId": 2008 },
+      { "id": 2021, "name": "Emil Maier", "details": {}, "fatherId": 2009 }
+    ]
+  }
+}
