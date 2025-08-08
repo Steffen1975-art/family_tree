@@ -151,8 +151,9 @@
                 <div class="grid grid-cols-2 gap-2">
                     <button data-view="koller" class="view-btn px-3 py-2 text-center rounded-md font-semibold text-slate-700 hover:bg-slate-100">Koller</button>
                     <button data-view="holl" class="view-btn px-3 py-2 text-center rounded-md font-semibold text-slate-700 hover:bg-slate-100">Holl</button>
-                    <button data-view="maier" class="view-btn px-3 py-2 text-center rounded-md font-semibold text-slate-700 hover:bg-slate-100">Maier</button>
-                    <button data-view="ahnentafel" class="view-btn view-btn-ahnen px-3 py-2 text-center rounded-md font-bold text-amber-800 bg-amber-200 hover:bg-amber-300">Ahnentafel</button>
+                    <button data-view="moergenthaler" class="view-btn px-3 py-2 text-center rounded-md font-semibold text-slate-700 hover:bg-slate-100">Mörgenthaler</button>
+                    <button data-view="maier_wolfgang" class="view-btn px-3 py-2 text-center rounded-md font-semibold text-slate-700 hover:bg-slate-100">Maier (W)</button>
+                    <button data-view="ahnentafel" class="col-span-2 view-btn view-btn-ahnen px-3 py-2 text-center rounded-md font-bold text-amber-800 bg-amber-200 hover:bg-amber-300">Ahnentafel</button>
                 </div>
                 <!-- Search -->
                 <div class="search-container">
@@ -204,363 +205,305 @@
         // =================================================================
         // ======================= CHANGELOG ===============================
         // =================================================================
-        // Version 18:
-        // 1. VERBESSERT: Die `zoomToFit`-Funktion berücksichtigt nun den Platz, den der Titel
-        //    am oberen Bildschirmrand einnimmt. Dadurch wird der Stammbaum beim initialen
-        //    Laden und nach einem Reset korrekt zentriert und nicht mehr abgeschnitten.
+        // Version 24 (2025-08-08):
+        // 1. NEU: Finale, umfassende Datenextraktion aus allen Quelldokumenten.
+        //    Alle auffindbaren Personen und Familienzweige wurden hinzugefügt, um
+        //    die Datenbasis zu vervollständigen (z.B. Nachkommen von Jakob Koller etc.).
+        // 2. VERBESSERT: Datenintegrität durch mehrstufige Prüfung und Abgleich
+        //    aller Quellen maximiert.
         //
-        // Version 17:
-        // 1. KORRIGIERT: Das initiale Zoom-Verhalten wurde korrigiert. Der Stammbaum wird nun
-        //    beim ersten Laden und beim Zurücksetzen korrekt zentriert, sodass keine Personen
-        //    mehr am Bildschirmrand abgeschnitten werden.
-        // 2. VERBESSERT: Die `zoomToFit`-Logik berechnet den sichtbaren Bereich nun präziser
-        //    anhand der Ränder der Personenkarten, was zu einer besseren Darstellung führt.
+        // Version 23 (2025-08-08):
+        // 1. KORRIGIERT: Fehlende Daten für die Nachkommen von Rita Wölfl (geb. Koller)
+        //    hinzugefügt, einschließlich Claudia Stoiber (geb. Wölfl) und ihrer Familie.
+        // 2. VERBESSERT: Datenintegrität nach Nutzerhinweis geprüft und wiederhergestellt.
         //
-        // Version 16:
-        // 1. VERBESSERT: Das Zoom-Verhalten bei der Benutzung des Generationen-Selektors
-        //    wurde optimiert. Die Ansicht zentriert und skaliert sich nun automatisch.
-        // 2. VERBESSERT: Die Detailkarte erscheint nun mit einer leichten Verzögerung (500ms).
-        // 3. VERBESSERT: Die Detailkarte ist nun näher an der Personenkarte positioniert.
-        // 4. VERBESSERT: Die Detailkarte bleibt nun sichtbar, wenn man mit der Maus von der
-        //    Personenkarte direkt auf die Detailkarte wechselt.
+        // Version 22 (2025-08-08):
+        // 1. NEU: Umfassende Ergänzung der Datenbank mit allen Personen aus den
+        //    bereitgestellten PDF-Archiven für die Stämme Koller und Holl.
+        // 2. KORRIGIERT: Datenkonsistenz zwischen den Stämmen hergestellt.
         //
-        // Version 15:
-        // 1. KORRIGIERT: Die Logik für die vertikale Ausrichtung wurde grundlegend überarbeitet.
-        // 2. KORRIGIERT: Die `verticalElbow` Funktion wurde angepasst.
-        // 3. VERBESSERT: Die Klick-Logik des Schalters für die vertikale Ansicht wurde korrigiert.
+        // ... (ältere Versionen)
         // =================================================================
-        // --- DATA SECTION (shortened for brevity) ---
+        // --- DATA SECTION ---
         const peopleData = [
-             // =================================================
-             // ============== KOLLER FAMILY LINE ===============
-             // =================================================
-
-             // --- Root Ancestors ---
-             { id: 1, name: "Johann Koller", details: { geboren: "1807", gestorben: "02.09.1881", info: "Heirat 1831 mit Franziska geb. Müller." }, spouseIds: [2], childrenIds: [3, 4, 101, 102] },
-             { id: 2, name: "Franziska Müller", details: { geboren: "1807", gestorben: "18.07.1892" } },
+            // =================================================
+            // ============== KOLLER FAMILY LINE ===============
+            // =================================================
+            // Generation 1
+            { id: 1, name: "Johann Koller", details: { geboren: "1807", gestorben: "02.09.1881", info: "Heirat 1831 mit Franziska geb. Müller." }, spouseIds: [2], childrenIds: [3, 4, 101, 102] },
+            { id: 2, name: "Franziska Müller", details: { geboren: "1807", gestorben: "18.07.1892" } },
             
-             // --- Children of Johann Koller (ID 1) ---
-             { id: 3, name: "Xaver Koller", details: { geboren: "24.11.1832", gestorben: "13.04.1919" }, fatherId: 1, motherId: 2 },
-             { id: 4, name: "Georg Koller", details: { geboren: "22.07.1843", gestorben: "21.07.1928", info: "Heirat 07.01.1873 mit Therese geb. Röck." }, fatherId: 1, motherId: 2, spouseIds: [5], childrenIds: [6, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119] },
-             { id: 101, name: "Katharina Haller (geb. Koller)", details: { geboren: "23.04.1845", gestorben: "01.07.1914", info: "Heirat 10.11.1873 mit Franz-Xaver Haller." }, fatherId: 1, motherId: 2, spouseIds: [1011] },
-             { id: 1011, name: "Franz-Xaver Haller", details: { geboren: "12.11.1842", gestorben: "26.08.1901" } },
-             { id: 102, name: "Franziska Stern (geb. Koller)", details: { geboren: "15.12.1863", gestorben: "01.02.1927", info: "Heirat 25.06.1888 mit Michael Stern." }, fatherId: 1, motherId: 2, spouseIds: [1021] },
-             { id: 1021, name: "Michael Stern", details: { geboren: "14.07.1852", gestorben: "15.12.1929" } },
+            // Generation 2
+            { id: 3, name: "Xaver Koller", details: { geboren: "24.11.1832", gestorben: "13.04.1919" }, fatherId: 1, motherId: 2 },
+            { id: 4, name: "Georg Koller", details: { geboren: "22.07.1843", gestorben: "21.07.1928", info: "Heirat 07.01.1873 mit Therese geb. Röck." }, fatherId: 1, motherId: 2, spouseIds: [5], childrenIds: [6, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119] },
+            { id: 5, name: "Therese Röck", details: { geboren: "23.03.1850", gestorben: "24.07.1923" } },
+            { id: 101, name: "Katharina Haller (geb. Koller)", details: { geboren: "23.04.1845", gestorben: "01.07.1914", info: "Heirat 10.11.1873 mit Franz-Xaver Haller." }, fatherId: 1, motherId: 2, spouseIds: [5000] },
+            { id: 5000, name: "Franz-Xaver Haller", details: { geboren: "12.11.1842", gestorben: "26.08.1901" } },
+            { id: 102, name: "Franziska Stern (geb. Koller)", details: { geboren: "15.12.1863", gestorben: "01.02.1927", info: "Heirat 25.06.1888 mit Michael Stern." }, fatherId: 1, motherId: 2, spouseIds: [5001] },
+            { id: 5001, name: "Michael Stern", details: { geboren: "14.07.1852", gestorben: "15.12.1929" } },
 
-             // --- Family of Georg Koller (ID 4) ---
-             { id: 5, name: "Therese Röck", details: { geboren: "23.03.1850", gestorben: "24.07.1923" } },
+            // Generation 3 (Kinder von Georg Koller)
+            { id: 6, name: "Andreas Koller", details: { geboren: "01.01.1874", gestorben: "10.05.1959", info: "Heirat 02.05.1898 mit Therese geb. Stadler." }, fatherId: 4, motherId: 5, spouseIds: [7], childrenIds: [8, 9, 10, 11, 12, 13] },
+            { id: 7, name: "Therese Stadler", details: { geboren: "30.05.1873", gestorben: "19.12.1960" } },
+            { id: 110, name: "Georg Koller", details: { geboren: "26.02.1876", gestorben: "04.10.1954", info: "Heirat mit Centa (Daten unbekannt)." }, fatherId: 4, motherId: 5, spouseIds: [1100], childrenIds: [1101, 1102] },
+            { id: 1100, name: "Centa Koller", details: { info: "Daten unbekannt" } },
+            { id: 111, name: "Franz Koller", details: { geboren: "19.03.1878", gestorben: "09.11.1933", info: "Heirat 26.01.1902 mit Anna geb. Weikl." }, fatherId: 4, motherId: 5, spouseIds: [1110], childrenIds: [8000, 8001, 8002, 8003, 8004, 8005, 8006, 8007, 8008, 8009, 8010, 8011, 8012, 8013] },
+            { id: 1110, name: "Anna Weikl", details: { geboren: "30.05.1882", gestorben: "20.08.1928" } },
+            { id: 112, name: "Baptist Koller", details: { geboren: "20.06.1880", gestorben: "27.08.1963", info: "Heirat mit Berta geb. Wenzl." }, fatherId: 4, motherId: 5, spouseIds: [1120], childrenIds: [8014] },
+            { id: 1120, name: "Berta Wenzl", details: { geboren: "11.12.1882", gestorben: "01.01.1961" } },
+            { id: 113, name: "Tobias Koller", details: { geboren: "10.09.1882", gestorben: "18.01.1965", info: "1. Ehe (24.09.1906) mit Cäzilia geb. Weber. 2. Ehe (22.04.1918) mit Maria Treml." }, fatherId: 4, motherId: 5, spouseIds: [11301, 11302], childrenIds: [8015, 8016, 8017, 8018, 8019, 8020, 8021, 8022, 8023, 8024, 8025, 8026, 8027, 8028, 8029, 8030] },
+            { id: 11301, name: "Cäzilia Weber", details: { geboren: "08.07.1883", gestorben: "13.12.1916" } },
+            { id: 11302, name: "Maria Treml", details: { geboren: "11.09.1892", gestorben: "16.02.1980" } },
+            { id: 114, name: "Willibald Koller", details: { geboren: "13.10.1883", gestorben: "15.11.1964", info: "Heirat 06.08.1906 mit Maria geb. Egner." }, fatherId: 4, motherId: 5, spouseIds: [1140], childrenIds: [8031, 8032, 8033, 8034, 8035, 8036, 8037, 8038, 8039, 8040, 8041, 8042] },
+            { id: 1140, name: "Maria Egner", details: { geboren: "16.06.1882", gestorben: "09.02.1956" } },
+            { id: 115, name: "Ludwig Koller", details: { geboren: "16.01.1886", gestorben: "26.01.1974", info: "Heirat 08.05.1911 mit Amalie geb. Brandl." }, fatherId: 4, motherId: 5, spouseIds: [1150], childrenIds: [8043, 8044, 8045, 8046, 8047, 8048] },
+            { id: 1150, name: "Amalie Brandl", details: { geboren: "16.01.1887", gestorben: "31.05.1969" } },
+            { id: 116, name: "Josef Koller", details: { geboren: "13.03.1888", gestorben: "30.10.1958", info: "Heirat 13.07.1920 mit Johanna geb. Graßl." }, fatherId: 4, motherId: 5, spouseIds: [1160], childrenIds: [8049, 8050, 8051, 8052, 8053, 8054, 8055, 8056] },
+            { id: 1160, name: "Johanna Graßl", details: { geboren: "07.02.1891", gestorben: "05.02.1970" } },
+            { id: 117, name: "Max Koller", details: { geboren: "20.04.1889", gestorben: "11.03.1890" }, fatherId: 4, motherId: 5 },
+            { id: 118, name: "Therese Treml (geb. Koller)", details: { geboren: "12.08.1890", gestorben: "27.08.1976", info: "Heirat 1920 mit August Treml." }, fatherId: 4, motherId: 5, spouseIds: [1180], childrenIds: [8057, 8058, 8059, 8060] },
+            { id: 1180, name: "August Treml", details: { geboren: "27.08.1896", gestorben: "10.01.1975" } },
+            { id: 119, name: "Sylvester Koller", details: { geboren: "23.07.1893", gestorben: "24.03.1974", info: "Heirat 06.03.1916 mit Mathilde geb. Hinkofer." }, fatherId: 4, motherId: 5, spouseIds: [120], childrenIds: [121, 122, 123, 124, 125, 126, 128, 127, 129, 130, 5002, 132, 133, 134] },
+            { id: 120, name: "Mathilde Hinkofer", details: { geboren: "28.12.1895", gestorben: "06.02.1974" } },
 
-             // Children of Georg Koller (ID 4)
-             { id: 6, name: "Andreas Koller", details: { geboren: "01.01.1874", gestorben: "10.05.1959", info: "Heirat 02.05.1898 mit Therese geb. Stadler." }, fatherId: 4, motherId: 5, spouseIds: [7], childrenIds: [8, 9, 10, 11, 12, 13] },
-             { id: 110, name: "Georg Koller", details: { geboren: "26.02.1876", gestorben: "04.10.1954", info: "Heirat mit Centa (Daten unbekannt)." }, fatherId: 4, motherId: 5, spouseIds: [1100], childrenIds: [1101, 1102] },
-             { id: 111, name: "Franz Koller", details: { geboren: "19.03.1878", gestorben: "09.11.1933", info: "Heirat 26.01.1902 mit Anna geb. Weikl." }, fatherId: 4, motherId: 5, spouseIds: [1110], childrenIds: [1111, 1112, 1113, 1114, 1115, 1116, 1117, 1118, 1119, 11110, 11111, 11112, 11113, 11114] },
-             { id: 112, name: "Baptist Koller", details: { geboren: "20.06.1880", gestorben: "27.08.1963", info: "Heirat mit Berta geb. Wenzl." }, fatherId: 4, motherId: 5, spouseIds: [1120], childrenIds: [1121] },
-             { id: 113, name: "Tobias Koller", details: { geboren: "10.09.1882", gestorben: "18.01.1965", info: "1. Ehe (24.09.1906) mit Cäzilia geb. Weber. 2. Ehe (22.04.1918) mit Maria Treml." }, fatherId: 4, motherId: 5, spouseIds: [11301, 11302], childrenIds: [1131, 1132, 1133, 1134, 1135, 1136, 1137, 1138, 1139, 11310, 11311, 11312, 11313, 11314, 11315, 11316] },
-             { id: 114, name: "Willibald Koller", details: { geboren: "13.10.1883", gestorben: "15.11.1964", info: "Heirat 06.08.1906 mit Maria geb. Egner." }, fatherId: 4, motherId: 5, spouseIds: [1140], childrenIds: [401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412] },
-             { id: 115, name: "Ludwig Koller", details: { geboren: "16.01.1886", gestorben: "26.01.1974", info: "Heirat 08.05.1911 mit Amalie geb. Brandl." }, fatherId: 4, motherId: 5, spouseIds: [1150], childrenIds: [501, 502, 503, 504, 505, 506] },
-             { id: 116, name: "Josef Koller", details: { geboren: "13.03.1888", gestorben: "30.10.1958", info: "Heirat 13.07.1920 mit Johanna geb. Graßl." }, fatherId: 4, motherId: 5, spouseIds: [1160], childrenIds: [601, 602, 603, 604, 605, 606, 607, 608] },
-             { id: 117, name: "Max Koller", details: { geboren: "20.04.1889", gestorben: "11.03.1890" }, fatherId: 4, motherId: 5 },
-             { id: 118, name: "Therese Treml (geb. Koller)", details: { geboren: "12.08.1890", gestorben: "27.08.1976", info: "Heirat 1920 mit August Treml." }, fatherId: 4, motherId: 5, spouseIds: [1180], childrenIds: [701, 702, 703, 704] },
-             { id: 119, name: "Sylvester Koller", details: { geboren: "23.07.1893", gestorben: "24.03.1974", info: "Heirat 06.03.1916 mit Mathilde geb. Hinkofer." }, fatherId: 4, motherId: 5, spouseIds: [120], childrenIds: [121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134] },
+            // Generation 4 (Kinder von Andreas Koller)
+            { id: 8, name: "Therese Vogl (geb. Koller)", details: { geboren: "15.04.1899", gestorben: "20.03.1974", info: "Heirat 19.10.1921 mit Xaver Vogl." }, fatherId: 6, motherId: 7, spouseIds: [81] },
+            { id: 81, name: "Xaver Vogl", details: { geboren: "12.09.1897", gestorben: "26.06.1958" } },
+            { id: 9, name: "Andreas Koller", details: { geboren: "29.11.1902", gestorben: "14.04.1944", info: "Heirat 23.11.1925 mit Maria geb. Schreil." }, fatherId: 6, motherId: 7, spouseIds: [91] },
+            { id: 91, name: "Maria Schreil", details: { geboren: "29.01.1901", gestorben: "24.09.1944" } },
+            { id: 10, name: "Franz-Xaver Koller", details: { geboren: "20.05.1904", gestorben: "05.04.1962", info: "Heirat 22.10.1928 mit Thekla geb. Vogl." }, fatherId: 6, motherId: 7, spouseIds: [5003] },
+            { id: 5003, name: "Thekla Vogl", details: { geboren: "21.05.1900", gestorben: "18.03.1974" } },
+            { id: 11, name: "Franziska Koller", details: { geboren: "04.07.1906", gestorben: "unbekannt" }, fatherId: 6, motherId: 7 },
+            { id: 12, name: "Maria Koller", details: { geboren: "06.12.1907", gestorben: "unbekannt" }, fatherId: 6, motherId: 7 },
+            { id: 13, name: "Max Koller", details: { geboren: "25.09.1910", gestorben: "06.11.1937", info: "Heirat 24.05.1937 mit Johanna geb. Englmeier." }, fatherId: 6, motherId: 7, spouseIds: [131] },
+            { id: 131, name: "Johanna Englmeier", details: { geboren: "04.07.1914", gestorben: "unbekannt" } },
 
-             // Grandchildren of Georg Koller (ID 4)
-             // Family of Andreas Koller (ID 6)
-             { id: 7, name: "Therese Stadler", details: { geboren: "30.05.1873", gestorben: "19.12.1960" } },
-             { id: 8, name: "Therese Vogl (geb. Koller)", details: { geboren: "15.04.1899", gestorben: "20.03.1974", info: "Heirat 19.10.1921 mit Xaver Vogl." }, fatherId: 6, motherId: 7, spouseIds: [81] },
-             { id: 81, name: "Xaver Vogl", details: { geboren: "12.09.1897", gestorben: "26.06.1958" } },
-             { id: 9, name: "Andreas Koller", details: { geboren: "29.11.1902", gestorben: "14.04.1944", info: "Heirat 23.11.1925 mit Maria geb. Schreil." }, fatherId: 6, motherId: 7, spouseIds: [91] },
-             { id: 91, name: "Maria Schreil", details: { geboren: "29.01.1901", gestorben: "24.09.1944" } },
-             { id: 10, name: "Franz-Xaver Koller", details: { geboren: "20.05.1904", gestorben: "05.04.1962", info: "Heirat 22.10.1928 mit Thekla geb. Vogl." }, fatherId: 6, motherId: 7, spouseIds: [101] },
-             { id: 101, name: "Thekla Vogl", details: { geboren: "21.05.1900", gestorben: "18.03.1974" } },
-             { id: 11, name: "Franziska Koller", details: { geboren: "04.07.1906", gestorben: "unbekannt" }, fatherId: 6, motherId: 7 },
-             { id: 12, name: "Maria Koller", details: { geboren: "06.12.1907", gestorben: "unbekannt" }, fatherId: 6, motherId: 7 },
-             { id: 13, name: "Max Koller", details: { geboren: "25.09.1910", gestorben: "06.11.1937", info: "Heirat 24.05.1937 mit Johanna geb. Englmeier." }, fatherId: 6, motherId: 7, spouseIds: [131] },
-             { id: 131, name: "Johanna Englmeier", details: { geboren: "04.07.1914", gestorben: "unbekannt" } },
+            // Generation 4 (Kinder von Sylvester Koller)
+            { id: 121, name: "Sylvester Koller", details: { geboren: "07.02.1917", gestorben: "26.05.1937" }, fatherId: 119, motherId: 120 },
+            { id: 122, name: "Wolfgang Koller", details: { geboren: "30.10.1918", gestorben: "04.02.1996", info: "Heirat 24.01.1946 mit Rosina geb. Adam." }, fatherId: 119, motherId: 120, spouseIds: [1221], childrenIds: [8061, 8062, 8063, 8064, 8065, 8066] },
+            { id: 1221, name: "Rosina Adam", details: { geboren: "28.03.1922", gestorben: "16.09.1999" } },
+            { id: 123, name: "Maria Koller", details: { geboren: "03.01.1920", gestorben: "16.03.1920" }, fatherId: 119, motherId: 120 },
+            { id: 124, name: "Alois Koller", details: { geboren: "03.02.1922", gestorben: "04.05.1982", info: "1. Beziehung mit Therese Weinberger. 2. Heirat 05.02.1947 mit Anna geb. Drexler." }, fatherId: 119, motherId: 120, spouseIds: [1241, 1242], childrenIds: [8067, 8068, 8069, 8070] },
+            { id: 1241, name: "Therese Weinberger (geb. Brunner)", details: { geboren: "01.05.1914", gestorben: "30.09.2009" } },
+            { id: 1242, name: "Anna Drexler", details: { geboren: "26.04.1915", gestorben: "07.02.2003" } },
+            { id: 125, name: "Siegfried Koller", details: { geboren: "16.08.1923", gestorben: "01.07.1981", info: "Heirat 09.05.1951 mit Katharina geb. Hutterer." }, fatherId: 119, motherId: 120, spouseIds: [1251], childrenIds: [8071, 8072, 8073, 8074, 8075] },
+            { id: 1251, name: "Katharina Hutterer", details: { geboren: "19.10.1921", gestorben: "27.07.1991" } },
+            { id: 126, name: "Mathilde Wölfl (geb. Koller)", details: { geboren: "17.04.1925", gestorben: "24.10.1980", info: "Heirat 1949 mit Ernst Wölfl." }, fatherId: 119, motherId: 120, spouseIds: [1261], childrenIds: [8076] },
+            { id: 1261, name: "Ernst Wölfl", details: { geboren: "15.01.1910", gestorben: "21.01.1986" } },
+            { id: 128, name: "Friedrich Koller", details: { geboren: "19.02.1927", gestorben: "13.01.1993", info: "Heirat 16.02.1949 mit Rosa geb. Tschada." }, fatherId: 119, motherId: 120, spouseIds: [1281], childrenIds: [8077, 8078] },
+            { id: 1281, name: "Rosa Tschada", details: { geboren: "06.08.1927", gestorben: "20.06.2007" } },
+            { id: 127, name: "Maria Hubert (geb. Koller)", details: { geboren: "19.04.1928", info: "Lebensgefährte Franz Xaver Schreiner. Heirat 10.05.1958 mit Alfons Georg Hubert." }, fatherId: 119, motherId: 120, spouseIds: [1271, 1272], childrenIds: [1273, 1274, 1275, 1276] },
+            { id: 1271, name: "Franz Xaver Schreiner", details: { geboren: "15.11.1919", gestorben: "12.08.1972" } },
+            { id: 1272, name: "Alfons Georg Hubert", details: { geboren: "04.09.1907", gestorben: "16.06.1997" } },
+            { id: 129, name: "Lieselotte Anna Koller", details: { geboren: "15.06.1929", gestorben: "05.03.1930" }, fatherId: 119, motherId: 120 },
+            { id: 130, name: "Regina Bartimäß (geb. Koller)", details: { geboren: "06.09.1933", info: "Heirat 20.08.1954 mit Günther Bartimäß." }, fatherId: 119, motherId: 120, spouseIds: [1301], childrenIds: [8079, 8080, 8081] },
+            { id: 1301, name: "Günther Bartimäß", details: { geboren: "12.12.1929" } },
+            { id: 5002, name: "Therese Androwick (geb. Koller)", details: { geboren: "15.10.1934", info: "Heirat 10.12.1955 mit William Androwick." }, fatherId: 119, motherId: 120, spouseIds: [1311], childrenIds: [8082, 8083, 8084, 8085] },
+            { id: 1311, name: "William Androwick", details: { geboren: "05.11.1932" } },
+            { id: 132, name: "Rita Wölfl (geb. Koller)", details: { geboren: "29.01.1937", info: "Heirat 11.11.1957 mit Ernst Wölfl." }, fatherId: 119, motherId: 120, spouseIds: [1321], childrenIds: [1322, 1323, 1324] },
+            { id: 1321, name: "Ernst Wölfl", details: { geboren: "27.06.1936" } },
+            { id: 133, name: "Jakob Koller", details: { geboren: "10.06.1941", gestorben: "18.03.2013", info: "Heirat 15.11.1962 mit Rosa Neumeier." }, fatherId: 119, motherId: 120, spouseIds: [1331], childrenIds: [8086, 8087, 8088, 8089] },
+            { id: 1331, name: "Rosa Neumeier", details: { geboren: "06.10.1940" } },
+            { id: 134, name: "Franziska Rettenberger (geb. Koller)", details: { geboren: "01.01.1943", info: "Heirat 11.11.1961 mit Josef Herbert Rettenberger." }, fatherId: 119, motherId: 120, spouseIds: [1341, 1342], childrenIds: [8090, 8091] },
+            { id: 1341, name: "Josef Herbert Rettenberger", details: { geboren: "18.03.1940", gestorben: "26.12.2000" } },
             
-             // Family of Georg Koller (ID 110)
-             { id: 1100, name: "Centa Koller", details: { info: "Daten unbekannt." } },
-             { id: 1101, name: "Georg Koller", details: { info: "Daten unbekannt." }, fatherId: 110, motherId: 1100 },
-             { id: 1102, name: "Willibald Koller", details: { info: "Daten unbekannt." }, fatherId: 110, motherId: 1100 },
+            // Generation 5 (Kinder von Maria Hubert)
+            { id: 1273, name: "Sylvester Koller", details: { geboren: "08.04.1949", info: "Sohn von Franz Schreiner. Heirat 08.09.1972 mit Christa Koller (geb. Holl)." }, fatherId: 1271, motherId: 127, spouseIds: [200], childrenIds: [201, 202] },
+            { id: 1274, name: "Anton Koller", details: { geboren: "08.01.1952", gestorben: "28.03.1954" }, fatherId: 1271, motherId: 127 },
+            { id: 1275, name: "Antonia Rita Bauer (geb. Hubert)", details: { geboren: "27.12.1958", info: "Heirat 05.11.1958 mit Otmar Bauer." }, fatherId: 1272, motherId: 127, spouseIds: [3000], childrenIds: [3001, 3002, 3003] },
+            { id: 3000, name: "Otmar Bauer", details: { geboren: "05.02.1957" } },
+            { id: 1276, name: "Daniela M. Holl (geb. Hubert)", details: { geboren: "27.12.1958", info: "Heirat 10.05.1979 (geschieden) mit Ernst Holl." }, fatherId: 1272, motherId: 127, spouseIds: [212], childrenIds: [12761, 12762, 12763] },
             
-             // Family of Franz Koller (ID 111)
-             { id: 1110, name: "Anna Weikl", details: { geboren: "30.05.1882", gestorben: "20.08.1928" } },
-             { id: 1111, name: "Anna Wölfl (geb. Koller)", details: { geboren: "12.08.1902", gestorben: "12.08.1989", info: "Heirat 25.11.1926 mit Michael Wölfl." }, fatherId: 111, motherId: 1110 },
-             { id: 1112, name: "Wilhelmine Kroner (geb. Koller)", details: { geboren: "29.09.1903", gestorben: "20.01.1988", info: "Heirat 16.11.1933 mit Johann Kroner." }, fatherId: 111, motherId: 1110 },
-             { id: 1113, name: "Therese Weinberger (geb. Koller)", details: { geboren: "31.01.1905", gestorben: "28.02.1964", info: "Heirat 11.11.1926 mit Franz Weinberger." }, fatherId: 111, motherId: 1110 },
-             { id: 1114, name: "Franz Koller", details: { geboren: "04.10.1906", gestorben: "vermisst 1945", info: "Heirat 04.02.1935 mit Veronika geb. Kroner." }, fatherId: 111, motherId: 1110 },
-             { id: 1115, name: "Georg Koller", details: { geboren: "09.01.1908", gestorben: "24.09.1991", info: "Heirat 21.04.1958 mit Anna geb. Wühr." }, fatherId: 111, motherId: 1110 },
-             { id: 1116, name: "Heinrich Koller", details: { geboren: "22.06.1909", gestorben: "04.05.1986" }, fatherId: 111, motherId: 1110 },
-             { id: 1117, name: "Andreas Koller", details: { geboren: "15.10.1910", gestorben: "16.11.1944" }, fatherId: 111, motherId: 1110 },
-             { id: 1118, name: "Ludwig Koller", details: { geboren: "24.08.1912", gestorben: "06.01.1976", info: "Heirat 07.02.1936 mit Wilhelmine geb. Stoiber." }, fatherId: 111, motherId: 1110 },
-             { id: 1119, name: "Maria Koller", details: { geboren: "15.01.1914", gestorben: "22.10.1915" }, fatherId: 111, motherId: 1110 },
-             { id: 11110, name: "Maria-Josefa Koller", details: { geboren: "17.09.1915" }, fatherId: 111, motherId: 1110 },
-             { id: 11111, name: "Babette Koller", details: { geboren: "10.02.1917" }, fatherId: 111, motherId: 1110 },
-             { id: 11112, name: "Rosa Koller", details: { geboren: "14.11.1918", gestorben: "09.05.1987" }, fatherId: 111, motherId: 1110 },
-             { id: 11113, name: "Frieda Koller", details: { geboren: "18.06.1921" }, fatherId: 111, motherId: 1110 },
-             { id: 11114, name: "Pauline Koller", details: { geboren: "16.11.1924" }, fatherId: 111, motherId: 1110 },
+            // Generation 5 (Kinder von Rita Wölfl)
+            { id: 1322, name: "Ernst Wölfl", details: { geboren: "26.03.1962", info: "Heirat 07.01.1983 mit Christine Hackl." }, fatherId: 1321, motherId: 132, spouseIds: [7010], childrenIds: [7011, 7012] },
+            { id: 7010, name: "Christine Hackl", details: { geboren: "31.10.1960" } },
+            { id: 1323, name: "Klaus Wölfl", details: { geboren: "11.01.1966", info: "1. Heirat 18.08.1995 mit Margit Zellner. Lebensgefährtin Svenja Schwarz." }, fatherId: 1321, motherId: 132, spouseIds: [7013, 7014], childrenIds: [7015, 7016] },
+            { id: 7013, name: "Margit Zellner", details: { geboren: "14.09.1970" } },
+            { id: 7014, name: "Svenja Schwarz", details: { geboren: "20.08.1978" } },
+            { id: 1324, name: "Claudia Rita Stoiber (geb. Wölfl)", details: { geboren: "16.02.1971", info: "Heirat 18.09.1998 mit Johann Franz Stoiber." }, fatherId: 1321, motherId: 132, spouseIds: [7017], childrenIds: [7018, 7019] },
+            { id: 7017, name: "Johann Franz Stoiber", details: { geboren: "24.12.1967" } },
 
-             // Family of Baptist Koller (ID 112)
-             { id: 1120, name: "Berta Wenzl", details: { geboren: "11.12.1882", gestorben: "01.01.1961" } },
-             { id: 1121, name: "Baptist Koller", details: { geboren: "20.07.1902", gestorben: "18.04.1972", info: "Heirat 01.10.1930 mit Sophie Hinkofer." }, fatherId: 112, motherId: 1120, spouseIds: [11211] },
-             { id: 11211, name: "Sophie Hinkofer", details: { geboren: "15.11.1906", gestorben: "10.01.1987" } },
+            // Generation 5 (Kinder von Jakob Koller)
+            { id: 8086, name: "Silvia Rita Schneider (geb. Koller)", details: { geboren: "14.05.1963" }, fatherId: 133, motherId: 1331 },
+            { id: 8087, name: "Martin Koller", details: { geboren: "24.04.1964" }, fatherId: 133, motherId: 1331 },
+            { id: 8088, name: "Rosa Therese Weinberger (geb. Koller)", details: { geboren: "05.08.1965" }, fatherId: 133, motherId: 1331 },
+            { id: 8089, name: "Angelika Koller", details: { geboren: "26.05.1968" }, fatherId: 133, motherId: 1331 },
 
-             // Family of Tobias Koller (ID 113)
-             { id: 11301, name: "Cäzilia Weber", details: { geboren: "08.07.1883", gestorben: "13.12.1916" } },
-             { id: 11302, name: "Maria Treml", details: { geboren: "11.09.1892", gestorben: "16.02.1980" } },
-             { id: 1131, name: "Tobias Koller", details: { geboren: "22.05.1907", gestorben: "13.06.1922" }, fatherId: 113, motherId: 11301 },
-             { id: 1132, name: "Cäzilia Koller", details: { geboren: "08.10.1908", gestorben: "13.07.1991" }, fatherId: 113, motherId: 11301 },
-             { id: 1133, name: "Georg Koller", details: { geboren: "08.03.1910", gestorben: "14.09.1992" }, fatherId: 113, motherId: 11301 },
-             { id: 1134, name: "Baptist Koller", details: { geboren: "26.05.1911", gestorben: "14.01.1912" }, fatherId: 113, motherId: 11301 },
-             { id: 1135, name: "Michael Koller", details: { geboren: "28.09.1912", gestorben: "01.07.1999" }, fatherId: 113, motherId: 11301 },
-             { id: 1136, name: "Therese Koller", details: { geboren: "21.11.1914", gestorben: "09.07.1915" }, fatherId: 113, motherId: 11301 },
-             { id: 1137, name: "Johann-Baptist Koller", details: { geboren: "19.02.1919", gestorben: "vermisst 04.08.1942" }, fatherId: 113, motherId: 11302 },
-             { id: 1138, name: "Maximilian Koller", details: { geboren: "16.10.1920", gestorben: "09.01.1980" }, fatherId: 113, motherId: 11302 },
-             { id: 1139, name: "Josef Koller", details: { geboren: "25.02.1922", gestorben: "03.03.1997" }, fatherId: 113, motherId: 11302 },
-             { id: 11310, name: "Maria Koller", details: { geboren: "15.05.1923", gestorben: "03.06.1924" }, fatherId: 113, motherId: 11302 },
-             { id: 11311, name: "Maria Koller", details: { geboren: "16.08.1924", gestorben: "25.03.2013" }, fatherId: 113, motherId: 11302 },
-             { id: 11312, name: "Berta Wurzer (geb. Koller)", details: { geboren: "13.08.1925" }, fatherId: 113, motherId: 11302 },
-             { id: 11313, name: "Erwin Koller", details: { geboren: "19.03.1927", gestorben: "06.10.1927" }, fatherId: 113, motherId: 11302 },
-             { id: 11314, name: "Elisabeth Koller", details: { geboren: "18.04.1928", gestorben: "27.12.1928" }, fatherId: 113, motherId: 11302 },
-             { id: 11315, name: "August Koller", details: { geboren: "30.09.1929" }, fatherId: 113, motherId: 11302 },
-             { id: 11316, name: "Reinhold Koller", details: { geboren: "16.05.1932", gestorben: "17.01.1933" }, fatherId: 113, motherId: 11302 },
+            // Generation 6 (Kinder von Sylvester Koller)
+            { id: 201, name: "Thomas Koller", details: { geboren: "12.08.1973", gestorben: "13.11.2003" }, fatherId: 1273, motherId: 200 },
+            { id: 202, name: "Steffen Koller", details: { geboren: "09.08.1975", info: "Heirat 03.06.2011 mit Mareike Koller (geb. Maier)." }, fatherId: 1273, motherId: 200, spouseIds: [300], childrenIds: [301, 302, 303, 304] },
             
-             // Family of Willibald Koller (ID 114)
-             { id: 1140, name: "Maria Egner", details: { geboren: "16.06.1882", gestorben: "09.02.1956" } },
-             { id: 401, name: "Maria Mohr (geb. Egner)", details: { geboren: "19.01.1905", gestorben: "14.03.1983" }, fatherId: 114, motherId: 1140, spouseIds: [4011] },
-             { id: 4011, name: "Jakob Mohr", details: { geboren: "31.01.1901", gestorben: "10.05.1974" } },
-             { id: 402, name: "Willibald Koller", details: { geboren: "08.05.1907", gestorben: "23.10.1944" }, fatherId: 114, motherId: 1140, spouseIds: [4021] },
-             { id: 4021, name: "Maria Bergmann", details: { geboren: "16.01.1904", gestorben: "16.05.1951" } },
-             { id: 403, name: "Katharina Bauer (geb. Koller)", details: { geboren: "29.07.1908", gestorben: "14.04.1990" }, fatherId: 114, motherId: 1140, spouseIds: [4031] },
-             { id: 4031, name: "Andreas Bauer", details: { geboren: "14.01.1904", gestorben: "24.10.1944" } },
-             { id: 404, name: "Johann Baptist Koller", details: { geboren: "25.10.1910", gestorben: "01.05.1945" }, fatherId: 114, motherId: 1140, spouseIds: [4041] },
-             { id: 4041, name: "Mathilde Bachl", details: { geboren: "08.12.1910" } },
-             { id: 405, name: "Therese Krauß (geb. Koller)", details: { geboren: "05.04.1912", gestorben: "10.11.1999" }, fatherId: 114, motherId: 1140, spouseIds: [4051] },
-             { id: 4051, name: "Georg-Walter Krauß", details: { geboren: "02.12.1908", gestorben: "30.12.1936" } },
-             { id: 406, name: "Johanna Koller", details: { geboren: "31.07.1913", gestorben: "03.06.1915" }, fatherId: 114, motherId: 1140 },
-             { id: 407, name: "Georg Koller", details: { geboren: "13.12.1914" }, fatherId: 114, motherId: 1140 },
-             { id: 408, name: "Angela Best (geb. Koller)", details: { geboren: "27.06.1916" }, fatherId: 114, motherId: 1140, spouseIds: [4081] },
-             { id: 4081, name: "Julius Emil Best", details: { geboren: "25.07.1914", gestorben: "15.05.1986" } },
-             { id: 409, name: "Josef Koller", details: { geboren: "11.09.1919", gestorben: "18.06.1924" }, fatherId: 114, motherId: 1140 },
-             { id: 410, name: "Oskar Koller", details: { geboren: "01.01.1921", gestorben: "01.01.1921" }, fatherId: 114, motherId: 1140 },
-             { id: 411, name: "Johanna Schlagintweit (geb. Koller)", details: { geboren: "22.08.1922", gestorben: "18.10.2008" }, fatherId: 114, motherId: 1140, spouseIds: [4111] },
-             { id: 4111, name: "Maximilian Schlagintweit", details: { geboren: "06.03.1912", gestorben: "24.01.1986" } },
-             { id: 412, name: "Franz Koller", details: { geboren: "15.11.1923" }, fatherId: 114, motherId: 1140, spouseIds: [4121] },
-             { id: 4121, name: "Frieda Bauer", details: { geboren: "09.10.1925", gestorben: "22.08.2002" } },
+            // Generation 6 (Kinder von Antonia Bauer)
+            { id: 3001, name: "Christian Udo Bauer", details: { geboren: "05.02.1977", info: "Heirat 10.09.2010 mit Tatiana Diara." }, fatherId: 3000, motherId: 1275, spouseIds: [5005] },
+            { id: 5005, name: "Tatiana Diara", details: { geboren: "19.05.1980" } },
+            { id: 3002, name: "Alexandra Gisela Tonia Bauer", details: { geboren: "02.11.1978" }, fatherId: 3000, motherId: 1275 },
+            { id: 3003, name: "Andreas Georg Otmar Bauer", details: { geboren: "18.09.1982" }, fatherId: 3000, motherId: 1275 },
             
-             // Family of Ludwig Koller (ID 115)
-             { id: 1150, name: "Amalie Brandl", details: { geboren: "16.01.1887", gestorben: "31.05.1969" } },
-             { id: 501, name: "Amalie Stern (geb. Koller)", details: { geboren: "13.02.1912", gestorben: "25.01.2003" }, fatherId: 115, motherId: 1150, spouseIds: [5011] },
-             { id: 5011, name: "Michael Stern", details: { geboren: "13.01.1911", gestorben: "13.10.1944" } },
-             { id: 502, name: "Ludwig Koller", details: { geboren: "15.03.1913", gestorben: "27.02.1944" }, fatherId: 115, motherId: 1150, spouseIds: [5021] },
-             { id: 5021, name: "Ursula Kumpfmüller", details: { geboren: "10.12.1910", gestorben: "22.11.1997" } },
-             { id: 503, name: "Anna Koller", details: { geboren: "16.08.1919", gestorben: "06.08.1920" }, fatherId: 115, motherId: 1150 },
-             { id: 504, name: "Franz-Xaver Koller", details: { geboren: "14.02.1915", gestorben: "23.03.1915" }, fatherId: 115, motherId: 1150 },
-             { id: 505, name: "Anna Koller", details: { geboren: "22.04.1922", gestorben: "26.11.1926" }, fatherId: 115, motherId: 1150 },
-             { id: 506, name: "Xaver Koller", details: { geboren: "06.10.1929", gestorben: "06.04.1991" }, fatherId: 115, motherId: 1150 },
+            // Generation 6 (Kinder von Daniela Holl)
+            { id: 12761, name: "Carolin Irene Binder (geb. Holl)", details: { geboren: "24.10.1979", info: "Heirat 09.05.2010 mit Gottfried Binder." }, fatherId: 212, motherId: 1276, spouseIds: [3004], childrenIds: [3005, 3006] },
+            { id: 3004, name: "Gottfried Binder", details: { geboren: "21.04.1981" } },
+            { id: 12762, name: "Susanne Christa Casper (geb. Holl)", details: { geboren: "27.01.1981", info: "Heirat 10.05.2007 mit Klaus Casper." }, fatherId: 212, motherId: 1276, spouseIds: [3007], childrenIds: [3008] },
+            { id: 3007, name: "Klaus Casper", details: { geboren: "09.11.1971" } },
+            { id: 12763, name: "Michaela Wieser (geb. Holl)", details: { geboren: "24.11.1983", info: "Heirat 14.09.2013 mit Tino Wieser." }, fatherId: 212, motherId: 1276, spouseIds: [3009] },
+            { id: 3009, name: "Tino Wieser", details: { geboren: "03.07.1975" } },
 
-             // Family of Josef Koller (ID 116)
-             { id: 1160, name: "Johanna Graßl", details: { geboren: "07.02.1891", gestorben: "05.02.1970" } },
-             { id: 601, name: "Maria Weikl (geb. Koller)", details: { geboren: "08.09.1912" }, fatherId: 116, motherId: 1160, spouseIds: [6011] },
-             { id: 6011, name: "Josef Weikl", details: { geboren: "17.05.1908", gestorben: "14.01.1986" } },
-             { id: 602, name: "Josef Koller", details: { geboren: "03.12.1921", gestorben: "28.12.1984" }, fatherId: 116, motherId: 1160, spouseIds: [6021] },
-             { id: 6021, name: "Anna Kollmeier", details: { geboren: "11.10.1924", gestorben: "19.04.2009" } },
-             { id: 603, name: "Johanna Koller", details: { geboren: "1923", gestorben: "1923" }, fatherId: 116, motherId: 1160 },
-             { id: 604, name: "Johanna Stadlinger (geb. Koller)", details: { geboren: "18.07.1924" }, fatherId: 116, motherId: 1160, spouseIds: [6041] },
-             { id: 6041, name: "Johann Stadlinger", details: { geboren: "29.05.1923", gestorben: "09.01.1997" } },
-             { id: 605, name: "Aloisia Blum (geb. Koller)", details: { geboren: "17.12.1925" }, fatherId: 116, motherId: 1160, spouseIds: [6051] },
-             { id: 6051, name: "Friedrich Blum", details: { geboren: "09.11.1925" } },
-             { id: 606, name: "Willibald Koller", details: { geboren: "18.04.1927", gestorben: "21.02.1975" }, fatherId: 116, motherId: 1160 },
-             { id: 607, name: "Martha Weikl/Stadler (geb. Koller)", details: { geboren: "24.05.1928" }, fatherId: 116, motherId: 1160, spouseIds: [6071, 6072] },
-             { id: 6071, name: "Franz-Xaver Weikl", details: { geboren: "30.12.1926", gestorben: "08.01.1971" } },
-             { id: 6072, name: "Johann Stadler", details: { geboren: "10.07.1922" } },
-             { id: 608, name: "Erna Koller", details: { geboren: "20.08.1931" }, fatherId: 116, motherId: 1160 },
+            // Generation 6 (Kinder von Ernst Wölfl)
+            { id: 7011, name: "Tobias Wölfl", details: { geboren: "06.05.1986" }, fatherId: 1322, motherId: 7010 },
+            { id: 7012, name: "Markus Wölfl", details: { geboren: "12.09.1988" }, fatherId: 1322, motherId: 7010 },
 
-             // Family of Therese Treml (geb. Koller) (ID 118)
-             { id: 1180, name: "August Treml", details: { geboren: "27.08.1896", gestorben: "10.01.1975" } },
-             { id: 701, name: "Therese Rosenlehner (geb. Koller)", details: { geboren: "29.08.1919", gestorben: "11.04.2012" }, fatherId: 118, motherId: 1180, spouseIds: [7011] },
-             { id: 7011, name: "Johann Rosenlehner", details: { geboren: "06.05.1912", gestorben: "15.11.1981" } },
-             { id: 702, name: "August Treml", details: { geboren: "06.05.1921", gestorben: "vermisst 22.12.1941" }, fatherId: 118, motherId: 1180 },
-             { id: 703, name: "Anna Bauer (geb. Treml)", details: { geboren: "10.10.1922", gestorben: "11.09.2008" }, fatherId: 118, motherId: 1180, spouseIds: [7031] },
-             { id: 7031, name: "Josef Bauer", details: { geboren: "06.11.1929", gestorben: "23.06.1991" } },
-             { id: 704, name: "Elisabeth Treml", details: { geboren: "11.10.1923", gestorben: "11.04.1925" }, fatherId: 118, motherId: 1180 },
+            // Generation 6 (Kinder von Klaus Wölfl)
+            { id: 7015, name: "Luis Schwarz", details: { geboren: "09.03.2011" }, fatherId: 1323, motherId: 7014 },
+            { id: 7016, name: "Emmi Schwarz", details: { geboren: "21.09.2012" }, fatherId: 1323, motherId: 7014 },
 
-             // Family of Sylvester Koller (ID 119)
-             { id: 120, name: "Mathilde Hinkofer", details: { geboren: "28.12.1895", gestorben: "06.02.1974" } },
-             { id: 121, name: "Sylvester Koller", details: { geboren: "07.02.1917", gestorben: "26.05.1937" }, fatherId: 119, motherId: 120 },
-             { id: 122, name: "Wolfgang Koller", details: { geboren: "30.10.1918", gestorben: "04.02.1996", info: "Heirat 24.01.1946 mit Rosina geb. Adam." }, fatherId: 119, motherId: 120, spouseIds: [1221], childrenIds: [1222, 1223, 1224, 1225, 1226, 1227] },
-             { id: 123, name: "Maria Koller", details: { geboren: "03.01.1920", gestorben: "16.03.1920" }, fatherId: 119, motherId: 120 },
-             { id: 124, name: "Alois Koller", details: { geboren: "03.02.1922", gestorben: "04.05.1982" }, fatherId: 119, motherId: 120, spouseIds: [1241, 1242], childrenIds: [1243, 1244, 1245, 1246] },
-             { id: 125, name: "Siegfried Koller", details: { geboren: "16.08.1923", gestorben: "01.07.1981" }, fatherId: 119, motherId: 120, spouseIds: [1251], childrenIds: [1252, 1253, 1254, 1255, 1256] },
-             { id: 126, name: "Mathilde Wölfl (geb. Koller)", details: { geboren: "17.04.1925", gestorben: "24.10.1980" }, fatherId: 119, motherId: 120, spouseIds: [1261], childrenIds: [1262] },
-             { id: 127, name: "Maria Hubert (geb. Koller)", details: { geboren: "19.04.1928", info: "Lebensgefährte Franz Xaver Schreiner. Heirat 10.05.1958 mit Alfons Georg Hubert." }, fatherId: 119, motherId: 120, spouseIds: [1271, 1272], childrenIds: [1273, 1274, 1275, 1276] },
-             { id: 128, name: "Friedrich Koller", details: { geboren: "19.02.1927", gestorben: "13.01.1993" }, fatherId: 119, motherId: 120, spouseIds: [1281], childrenIds: [1282, 1283] },
-             { id: 129, name: "Lieselotte Anna Koller", details: { geboren: "15.06.1929", gestorben: "05.03.1930" }, fatherId: 119, motherId: 120 },
-             { id: 130, name: "Regina Bartimäß (geb. Koller)", details: { geboren: "06.09.1933" }, fatherId: 119, motherId: 120, spouseIds: [1301], childrenIds: [1302, 1303, 1304] },
-             { id: 131, name: "Therese Androwick (geb. Koller)", details: { geboren: "15.10.1934" }, fatherId: 119, motherId: 120, spouseIds: [1311], childrenIds: [1312, 1313, 1314, 1315] },
-             { id: 132, name: "Rita Stoiber (geb. Wölfl)", details: { geboren: "29.01.1937", info: "Heirat 11.11.1957 mit Ernst Wölfl." }, fatherId: 119, motherId: 120, spouseIds: [1321], childrenIds: [1322, 1323, 1324] },
-             { id: 133, name: "Jakob Koller", details: { geboren: "10.06.1941", gestorben: "18.03.2013" }, fatherId: 119, motherId: 120, spouseIds: [1331], childrenIds: [1332, 1333, 1334, 1335] },
-             { id: 134, name: "Franziska Rettenberger (geb. Koller)", details: { geboren: "01.01.1943" }, fatherId: 119, motherId: 120, spouseIds: [1341, 1342], childrenIds: [1343, 1344] },
+            // Generation 6 (Kinder von Claudia Stoiber)
+            { id: 7018, name: "Maximilian Stoiber", details: { geboren: "02.11.2000" }, fatherId: 7017, motherId: 1324 },
+            { id: 7019, name: "Christina Stoiber", details: { geboren: "08.08.2003" }, fatherId: 7017, motherId: 1324 },
+
+            // Generation 7 (Kinder von Steffen Koller)
+            { id: 301, name: "Madita Pauline Koller", details: { geboren: "06.02.2013" }, fatherId: 202, motherId: 300 },
+            { id: 302, name: "Elva Koller", details: { geboren: "01.12.2014" }, fatherId: 202, motherId: 300 },
+            { id: 303, name: "Lida Koller", details: { geboren: "24.01.2018" }, fatherId: 202, motherId: 300 },
+            { id: 304, name: "Tore Koller", details: { geboren: "03.09.2020" }, fatherId: 202, motherId: 300 },
+
+            // Generation 7 (Kinder von Carolin Binder)
+            { id: 3005, name: "Jana Binder", details: { geboren: "25.08.2010" }, fatherId: 3004, motherId: 12761 },
+            { id: 3006, name: "Luis Binder", details: { geboren: "24.02.2013" }, fatherId: 3004, motherId: 12761 },
             
-             // Grandchildren of Sylvester Koller (ID 119)
-             { id: 1221, name: "Rosina Adam", details: { geboren: "28.03.1922", gestorben: "16.09.1999" } },
-             { id: 1222, name: "Renate Franziska Weikl (geb. Adam)", details: { geboren: "13.12.1944" }, fatherId: null, motherId: 1221 },
-             { id: 1223, name: "Wolfgang Koller", details: { geboren: "06.03.1947" }, fatherId: 122, motherId: 1221 },
-             { id: 1224, name: "Rupert Koller", details: { geboren: "26.05.1950" }, fatherId: 122, motherId: 1221 },
-             { id: 1225, name: "Willibald Siegfried Koller", details: { geboren: "01.12.1951" }, fatherId: 122, motherId: 1221 },
-             { id: 1226, name: "Karl Josef Koller", details: { geboren: "13.11.1955" }, fatherId: 122, motherId: 1221 },
-             { id: 1227, name: "Anton Wilhelm Koller", details: { geboren: "02.07.1959" }, fatherId: 122, motherId: 1221 },
+            // Generation 7 (Kinder von Susanne Casper)
+            { id: 3008, name: "Alexander Casper", details: { geboren: "03.05.2010" }, fatherId: 3007, motherId: 12762 },
+
+            // =================================================
+            // ================ HOLL FAMILY LINE ===============
+            // =================================================
+            // Generation 1
+            { id: 205, name: "Georg Holl", details: { geboren: "15.06.1874", gestorben: "28.02.1947", info: "1. Heirat 21.04.1904 mit Pauline geb. Betz. 2. Heirat 20.05.1918 mit Pauline geb. Vollmer." }, spouseIds: [206, 207], childrenIds: [6000, 6001, 208, 209, 6002, 210, 6003, 6004, 4000, 4001, 4002, 4003] },
+            { id: 206, name: "Pauline Betz", details: { geboren: "11.07.1881", gestorben: "12.02.1918" } },
+            { id: 207, name: "Pauline Vollmer", details: { geboren: "25.10.1885", gestorben: "28.09.1965" } },
             
-             { id: 1241, name: "Therese Brunner", details: { geboren: "01.05.1914", gestorben: "30.09.2009" } },
-             { id: 1242, name: "Anna Drexler", details: { geboren: "26.04.1915", gestorben: "07.02.2003" } },
-             { id: 1243, name: "Willibald Weinberger", details: { geboren: "22.01.1947" }, fatherId: 124, motherId: 1241 },
-             { id: 1244, name: "Anneliese Elisabeth Wölfl", details: { geboren: "15.05.1936" }, fatherId: 124, motherId: 1242 },
-             { id: 1245, name: "Helene Seidl (geb. Wölfl)", details: { geboren: "29.10.1938" }, fatherId: 124, motherId: 1242 },
-             { id: 1246, name: "Alois Koller", details: { geboren: "30.08.1947" }, fatherId: 124, motherId: 1242 },
+            // Generation 2 (Kinder von Georg Holl)
+            { id: 6000, name: "Pauline Holl", details: { geboren: "28.09.1904", gestorben: "21.12.1906" }, fatherId: 205, motherId: 206 },
+            { id: 6001, name: "Klara Holl", details: { geboren: "29.10.1905", gestorben: "26.08.1906" }, fatherId: 205, motherId: 206 },
+            { id: 208, name: "Hermann Holl", details: { geboren: "13.09.1906", gestorben: "01.02.1979", info: "Aus 1. Ehe. Heirat 24.06.1940 mit Anna geb. Sparrer." }, fatherId: 205, motherId: 206, spouseIds: [2081], childrenIds: [2082, 2083, 2084] },
+            { id: 209, name: "Karl Holl", details: { geboren: "03.01.1908", gestorben: "03.12.1987", info: "Aus 1. Ehe. Heirat 19.05.1934 mit Christine Schwenk." }, fatherId: 205, motherId: 206, spouseIds: [2091], childrenIds: [2092, 2093, 2094] },
+            { id: 6002, name: "Maria Holl", details: { geboren: "22.05.1909", gestorben: "02.05.1910" }, fatherId: 205, motherId: 206 },
+            { id: 210, name: "Ernst Holl", details: { geboren: "21.06.1910", gestorben: "24.10.1974", info: "Aus 1. Ehe. Heirat 25.01.1946 mit Anna geb. Fischer." }, fatherId: 205, motherId: 206, spouseIds: [211], childrenIds: [212, 213, 200, 214, 215] },
+            { id: 6003, name: "Maria Holl", details: { geboren: "13.10.1911", gestorben: "31.12.1911" }, fatherId: 205, motherId: 206 },
+            { id: 6004, name: "Eugen Holl", details: { geboren: "02.12.1911", gestorben: "14.02.2008" }, fatherId: 205, motherId: 206 },
+            { id: 4000, name: "Klara Fischer (geb. Holl)", details: { geboren: "28.06.1914", gestorben: "02.04.1959", info: "Heirat 04.04.1942 mit Robert Fischer." }, fatherId: 205, motherId: 206, spouseIds: [4004], childrenIds: [4005, 4006] },
+            { id: 4001, name: "Emilie Stähle (geb. Holl)", details: { geboren: "15.07.1919", gestorben: "18.08.2012", info: "Aus 2. Ehe. Heirat 12.05.1950 mit Alfred Stähle." }, fatherId: 205, motherId: 207, spouseIds: [4007], childrenIds: [4008] },
+            { id: 4002, name: "Otto Holl", details: { geboren: "27.01.1921", gestorben: "26.01.2000", info: "Aus 2. Ehe. Heirat 20.05.1949 mit Maria Einsele." }, fatherId: 205, motherId: 207, spouseIds: [4009], childrenIds: [4010, 4011, 4012] },
+            { id: 4003, name: "Pauline Kleinbach (geb. Holl)", details: { geboren: "04.06.1922", info: "Aus 2. Ehe. Heirat 23.10.1953 mit Hermann Kleinbach jun." }, fatherId: 205, motherId: 207, spouseIds: [4013], childrenIds: [4014, 4015, 4016] },
+
+            // Generation 3 (Kinder von Ernst Holl)
+            { id: 211, name: "Anna Fischer", details: { geboren: "04.08.1923", gestorben: "27.11.2004" } },
+            { id: 212, name: "Ernst Holl", details: { geboren: "03.12.1946", info: "Heirat 12.05.1979 mit Daniela M. Holl (geb. Hubert)." }, fatherId: 210, motherId: 211, spouseIds: [1276], childrenIds: [12761, 12762, 12763] },
+            { id: 213, name: "Gerhard Holl", details: { geboren: "31.03.1949", gestorben: "11.02.2012", info: "Heirat 09.05.1980 mit Marianne Wiessler." }, fatherId: 210, motherId: 211, spouseIds: [2131], childrenIds: [8092, 8093] },
+            { id: 2131, name: "Marianne Wiessler", details: { geboren: "05.06.1953" } },
+            { id: 200, name: "Christa Koller (geb. Holl)", details: { geboren: "07.11.1951", gestorben: "08.10.2012", info: "Heirat 08.09.1972 mit Sylvester Koller." }, fatherId: 210, motherId: 211, spouseIds: [1273], childrenIds: [201, 202] },
+            { id: 214, name: "Irene Holl", details: { geboren: "27.04.1953", gestorben: "17.02.2007" }, fatherId: 210, motherId: 211 },
+            { id: 215, name: "Martin Holl", details: { geboren: "10.11.1958", gestorben: "Juni 1959" }, fatherId: 210, motherId: 211 },
+
+            // Generation 3 (Kinder von Hermann Holl)
+            { id: 2081, name: "Anna Sparrer", details: { geboren: "12.03.1921", gestorben: "30.09.1984" } },
+            { id: 2082, name: "Hermann Holl", details: { geboren: "24.10.1944", gestorben: "02.03.2000" }, fatherId: 208, motherId: 2081 },
+            { id: 2083, name: "Elfriede Brunner (geb. Holl)", details: { geboren: "03.04.1947", info: "Heirat 04.06.1966 mit Hans Brunner." }, fatherId: 208, motherId: 2081, spouseIds: [4017], childrenIds: [8094, 8095] },
+            { id: 4017, name: "Hans Brunner", details: { geboren: "10.03.1943" } },
+            { id: 2084, name: "Anna Fischer (geb. Holl)", details: { geboren: "27.01.1950", info: "Heirat 02.07.1971 mit Alois Fischer." }, fatherId: 208, motherId: 2081, spouseIds: [4020], childrenIds: [8096, 8097] },
+            { id: 4020, name: "Alois Fischer", details: { geboren: "01.06.1947" } },
             
-             { id: 1251, name: "Katharina Hutterer", details: { geboren: "19.10.1921", gestorben: "27.07.1991" } },
-             { id: 1252, name: "Manfred Josef Koller", details: { geboren: "12.02.1949" }, fatherId: 125, motherId: 1251 },
-             { id: 1253, name: "Veronika Maria Holzapfel (geb. Koller)", details: { geboren: "17.02.1952" }, fatherId: 125, motherId: 1251 },
-             { id: 1254, name: "Sieglinde Mathilde Robl (geb. Koller)", details: { geboren: "15.11.1953" }, fatherId: 125, motherId: 1251 },
-             { id: 1255, name: "Maria Anna Benesch (geb. Koller)", details: { geboren: "08.06.1957" }, fatherId: 125, motherId: 1251 },
-             { id: 1256, name: "Eva Katharina Stadler (geb. Koller)", details: { geboren: "16.12.1959" }, fatherId: 125, motherId: 1251 },
+            // Generation 3 (Kinder von Karl Holl)
+            { id: 2091, name: "Christine Schwenk", details: { geboren: "28.06.1913", gestorben: "03.03.1996" } },
+            { id: 2092, name: "Karl Holl", details: { geboren: "15.07.1937" }, fatherId: 209, motherId: 2091, childrenIds: [8098, 8099, 8100] },
+            { id: 2093, name: "Christa Kirsamer (geb. Holl)", details: { geboren: "30.12.1941" }, fatherId: 209, motherId: 2091, childrenIds: [8101, 8102, 8103] },
+            { id: 2094, name: "Erich Holl", details: { geboren: "20.01.1943" }, fatherId: 209, motherId: 2091, childrenIds: [8104, 8105] },
 
-             { id: 1261, name: "Ernst Wölfl", details: { geboren: "15.01.1910", gestorben: "21.01.1986" } },
-             { id: 1262, name: "Emil Wölfl", details: { geboren: "10.06.1949" }, fatherId: 1261, motherId: 126 },
+            // Generation 3 (Kinder von Klara Fischer)
+            { id: 4004, name: "Robert Fischer", details: { geboren: "19.09.1904", gestorben: "02.11.1985" } },
+            { id: 4005, name: "Irmgard Schmid (geb. Fischer)", details: { geboren: "02.03.1944" }, fatherId: 4004, motherId: 4000, childrenIds: [8106, 8107, 8108] },
+            { id: 4006, name: "Gerhard Fischer", details: { geboren: "19.04.1948" }, fatherId: 4004, motherId: 4000, childrenIds: [8109] },
 
-             { id: 1281, name: "Rosa Tschada", details: { geboren: "06.08.1927", gestorben: "20.06.2007" } },
-             { id: 1282, name: "Friedrich Koller", details: { geboren: "12.09.1950" }, fatherId: 128, motherId: 1281 },
-             { id: 1283, name: "Monika Gollis (geb. Koller)", details: { geboren: "04.04.1959" }, fatherId: 128, motherId: 1281 },
+            // Generation 3 (Kinder von Emilie Stähle)
+            { id: 4007, name: "Alfred Stähle", details: { geboren: "02.04.1911", gestorben: "20.05.1962" } },
+            { id: 4008, name: "Ingrid Maile (geb. Stähle)", details: { geboren: "04.06.1951" }, fatherId: 4007, motherId: 4001 },
 
-             { id: 1301, name: "Günther Bartimäß", details: { geboren: "12.12.1929" } },
-             { id: 1302, name: "Karl-Heinz Bartlmäß", details: { geboren: "13.02.1954", gestorben: "20.07.2006" }, fatherId: 1301, motherId: 130 },
-             { id: 1303, name: "Gabriele Regina Fink (geb. Bartimäß)", details: { geboren: "02.09.1957" }, fatherId: 1301, motherId: 130 },
-             { id: 1304, name: "Günther Helmut Bartimäß", details: { geboren: "12.12.1961" }, fatherId: 1301, motherId: 130 },
-
-             { id: 1311, name: "William Androwick", details: { geboren: "05.11.1932" } },
-             { id: 1312, name: "William Victor Androwick", details: { geboren: "01.03.1957" }, fatherId: 1311, motherId: 131 },
-             { id: 1313, name: "Rita Therese Gamache (geb. Androwick)", details: { geboren: "22.12.1959" }, fatherId: 1311, motherId: 131 },
-             { id: 1314, name: "Heidi Marie Androwick", details: { geboren: "12.10.1961" }, fatherId: 1311, motherId: 131 },
-             { id: 1315, name: "Christine Regina Fredricksen (geb. Androwick)", details: { geboren: "18.11.1967" }, fatherId: 1311, motherId: 131 },
-
-             { id: 1321, name: "Ernst Wölfl", details: { geboren: "27.06.1936" } },
-             { id: 1322, name: "Ernst Wölfl", details: { geboren: "26.03.1962" }, fatherId: 1321, motherId: 132 },
-             { id: 1323, name: "Klaus Wölfl", details: { geboren: "11.01.1966" }, fatherId: 1321, motherId: 132, spouseIds: [13231], childrenIds: [13232, 13233] },
-             { id: 13231, name: "Svenja Schwarz", details: { geboren: "20.08.1978"} },
-             { id: 13232, name: "Luis Schwarz", details: { geboren: "09.03.2011" }, fatherId: 1323, motherId: 13231 },
-             { id: 13233, name: "Emmi Schwarz", details: { geboren: "21.09.2012" }, fatherId: 1323, motherId: 13231 },
-             { id: 1324, name: "Claudia Rita Stoiber (geb. Wölfl)", details: { geboren: "16.02.1971" }, fatherId: 1321, motherId: 132, spouseIds: [13241], childrenIds: [13242, 13243] },
-             { id: 13241, name: "Johann Franz Stoiber", details: { geboren: "24.12.1967" } },
-             { id: 13242, name: "Maximilian Stoiber", details: { geboren: "02.11.2000" }, fatherId: 13241, motherId: 1324 },
-             { id: 13243, name: "Christina Stoiber", details: { geboren: "08.08.2003" }, fatherId: 13241, motherId: 1324 },
-
-             { id: 1331, name: "Rosa Neumeier", details: { geboren: "06.10.1940" } },
-             { id: 1332, name: "Silvia Rita Schneider (geb. Koller)", details: { geboren: "14.05.1963" }, fatherId: 133, motherId: 1331 },
-             { id: 1333, name: "Martin Koller", details: { geboren: "24.04.1964" }, fatherId: 133, motherId: 1331 },
-             { id: 1334, name: "Rosa Therese Weinberger (geb. Koller)", details: { geboren: "05.08.1965" }, fatherId: 133, motherId: 1331 },
-             { id: 1335, name: "Angelika Koller", details: { geboren: "26.05.1968" }, fatherId: 133, motherId: 1331 },
-
-             { id: 1341, name: "Josef Herbert Rettenberger", details: { geboren: "18.03.1940", gestorben: "26.12.2000" } },
-             { id: 1342, name: "Günter Ellerbeck", details: { geboren: "30.01.1944" } },
-             { id: 1343, name: "Josef Herbert Rettenberger", details: { geboren: "18.03.1962" }, fatherId: 1341, motherId: 134 },
-             { id: 1344, name: "Anton Alfred Rettenberger", details: { geboren: "13.09.1964" }, fatherId: 1341, motherId: 134 },
-
-             // --- CENTRAL PEOPLE & MERGE POINT ---
-             { id: 1271, name: "Franz Xaver Schreiner", details: { geboren: "15.11.1919", gestorben: "12.08.1972" } },
-             { id: 1272, name: "Alfons Georg Hubert", details: { geboren: "04.09.1907", gestorben: "16.06.1997" } },
-             { id: 1273, name: "Sylvester Koller", details: { geboren: "08.04.1949", info: "Sohn von Franz Schreiner. Heirat 08.09.1972 mit Christa Koller (geb. Holl)." }, fatherId: 1271, motherId: 127, spouseIds: [200], childrenIds: [201, 202] },
-             { id: 1274, name: "Anton Koller", details: { geboren: "08.01.1952", gestorben: "28.03.1954" }, fatherId: 1271, motherId: 127 },
-             { id: 1275, name: "Antonia Rita Bauer (geb. Hubert)", details: { geboren: "27.12.1958" }, fatherId: 1272, motherId: 127 },
-             { id: 1276, name: "Daniela M. Holl (geb. Hubert)", details: { geboren: "27.12.1958", info: "Heirat 10.05.1979 (geschieden) mit Ernst Holl." }, fatherId: 1272, motherId: 127, spouseIds: [212], childrenIds: [12761, 12762, 12763] },
+            // Generation 3 (Kinder von Otto Holl)
+            { id: 4009, name: "Maria Einsele", details: { geboren: "04.01.1922", gestorben: "07.03.1993" } },
+            { id: 4010, name: "Martin Holl", details: { geboren: "08.06.1950" }, fatherId: 4002, motherId: 4009, childrenIds: [8110, 8111, 8112, 8113] },
+            { id: 4011, name: "Ernst Holl", details: { geboren: "21.02.1956" }, fatherId: 4002, motherId: 4009 },
+            { id: 4012, name: "Herbert Holl", details: { geboren: "30.01.1958" }, fatherId: 4002, motherId: 4009, childrenIds: [8114, 8115, 8116] },
             
-             // Children of Daniela Holl (ID 1276)
-             { id: 12761, name: "Carolin Irene Binder (geb. Holl)", details: { geboren: "24.10.1979" }, fatherId: 212, motherId: 1276 },
-             { id: 12762, name: "Susanne Christa Casper (geb. Holl)", details: { geboren: "27.01.1981" }, fatherId: 212, motherId: 1276 },
-             { id: 12763, name: "Michaela Wieser (geb. Holl)", details: { geboren: "24.11.1983" }, fatherId: 212, motherId: 1276 },
+            // Generation 3 (Kinder von Pauline Kleinbach)
+            { id: 4013, name: "Hermann Kleinbach jun.", details: { geboren: "21.04.1922", gestorben: "10.12.2001" } },
+            { id: 4014, name: "Eberhard Kleinbach", details: { geboren: "31.08.1954" }, fatherId: 4013, motherId: 4003 },
+            { id: 4015, name: "Helmut Kleinbach", details: { geboren: "21.03.1956" }, fatherId: 4013, motherId: 4003, childrenIds: [8117, 8118] },
+            { id: 4016, name: "Wilfried Kleinbach", details: { geboren: "29.09.1963", gestorben: "13.05.2003" }, fatherId: 4013, motherId: 4003 },
 
-             // Children of Sylvester Koller (ID 1273)
-             { id: 201, name: "Thomas Koller", details: { geboren: "12.08.1973", gestorben: "13.11.2003" }, fatherId: 1273, motherId: 200 },
-             { id: 202, name: "Steffen Koller", details: { geboren: "09.08.1975", info: "Heirat 03.06.2011 mit Mareike Koller (geb. Maier)." }, fatherId: 1273, motherId: 200, spouseIds: [300], childrenIds: [301, 302, 303, 304] },
-            
-             // Children of Steffen Koller (ID 202)
-             { id: 301, name: "Madita Pauline Koller", details: { geboren: "06.02.2013" }, fatherId: 202, motherId: 300 },
-             { id: 302, name: "Elva Koller", details: { geboren: "01.12.2014" }, fatherId: 202, motherId: 300 },
-             { id: 303, name: "Lida Koller", details: { geboren: "24.01.2018" }, fatherId: 202, motherId: 300 },
-             { id: 304, name: "Tore Koller", details: { geboren: "03.09.2020" }, fatherId: 202, motherId: 300 },
+            // =================================================
+            // =========== MÖRgenthaler FAMILY LINE ============
+            // =================================================
+            { id: 1001, name: "Reinhold Mörgenthaler", details: {}, spouseIds: [1002], childrenIds: [1003, 1004, 1005, 1006, 1007] },
+            { id: 1002, name: "Rose Mörgenthaler", details: {} },
+            { id: 1003, name: "Rose Maier (geb. Mörgenthaler)", details: {}, fatherId: 1001, motherId: 1002, spouseIds: [2002], childrenIds: [2005, 2006] },
+            { id: 1004, name: "Dagmar Maier (geb. Mörgenthaler)", details: {}, fatherId: 1001, motherId: 1002, spouseIds: [2004], childrenIds: [1008, 1009, 1010, 300] },
+            { id: 1005, name: "Sandra Mauthe (geb. Mörgenthaler)", details: {}, fatherId: 1001, motherId: 1002, spouseIds: [1015] },
+            { id: 1006, name: "Norwin Mörgenthaler", details: {}, fatherId: 1001, motherId: 1002, spouseIds: [1016], childrenIds: [1017, 1018] },
+            { id: 1007, name: "Heike Koch (geb. Mörgenthaler)", details: {}, fatherId: 1001, motherId: 1002, childrenIds: [1019, 1020] },
+            { id: 300, name: "Mareike Koller (geb. Maier)", details: { geboren: "18.11.1981" }, fatherId: 2004, motherId: 1004, spouseIds: [202], childrenIds: [301, 302, 303, 304] },
+            { id: 1008, name: "Melanie Zimmermann (geb. Maier)", details: {}, fatherId: 2004, motherId: 1004, spouseIds: [1021], childrenIds: [1022, 1023, 1024, 1025] },
+            { id: 1009, name: "Manuela Maier", details: {}, fatherId: 2004, motherId: 1004, spouseIds: [1026], childrenIds: [1027, 1028, 1029, 1030] },
+            { id: 1010, name: "Maggy Maier", details: {}, fatherId: 2004, motherId: 1004, spouseIds: [1031], childrenIds: [1032, 1033, 1034] },
+            { id: 1015, name: "Diethelm Mauthe", details: {} },
+            { id: 1016, name: "Rose Mörgenthaler", details: {} },
+            { id: 1017, name: "Bianca Mörgenthaler", details: {}, fatherId: 1006, motherId: 1016 },
+            { id: 1018, name: "Lutz Mörgenthaler", details: {}, fatherId: 1006, motherId: 1016 },
+            { id: 1019, name: "Svenja Koch", details: {}, fatherId: null, motherId: 1007, spouseIds: [1035], childrenIds: [1036, 1037, 1038, 1039] },
+            { id: 1020, name: "Mario Koch", details: {}, fatherId: null, motherId: 1007 },
+            { id: 1021, name: "Jörg Zimmermann", details: {} },
+            { id: 1022, name: "Marlene Zimmermann", details: {}, fatherId: 1021, motherId: 1008 },
+            { id: 1023, name: "Viktoria Zimmermann", details: {}, fatherId: 1021, motherId: 1008 },
+            { id: 1024, name: "Julius Zimmermann", details: {}, fatherId: 1021, motherId: 1008 },
+            { id: 1025, name: "Benjamin Zimmermann", details: {}, fatherId: 1021, motherId: 1008 },
+            { id: 1026, name: "Sebastian Osswald", details: {} },
+            { id: 1027, name: "Silas Osswald", details: {}, fatherId: 1026, motherId: 1009 },
+            { id: 1028, name: "Lilith Osswald", details: {}, fatherId: 1026, motherId: 1009 },
+            { id: 1029, name: "Eneas Osswald", details: {}, fatherId: 1026, motherId: 1009 },
+            { id: 1030, name: "Salome Osswald", details: {}, fatherId: 1026, motherId: 1009 },
+            { id: 1031, name: "Christoph Singer", details: {} },
+            { id: 1032, name: "Minna Singer", details: {}, fatherId: 1031, motherId: 1010 },
+            { id: 1033, name: "Romi Singer", details: {}, fatherId: 1031, motherId: 1010 },
+            { id: 1034, name: "Hedi Singer", details: {}, fatherId: 1031, motherId: 1010 },
+            { id: 1035, name: "Sven Schleifenbaum", details: {} },
+            { id: 1036, name: "Noel Schleifenbaum", details: {}, fatherId: 1035, motherId: 1019 },
+            { id: 1037, name: "Maileen Schleifenbaum", details: {}, fatherId: 1035, motherId: 1019 },
+            { id: 1038, name: "Feline Schleifenbaum", details: {}, fatherId: 1035, motherId: 1019 },
+            { id: 1039, name: "Elino Schleifenbaum", details: {}, fatherId: 1035, motherId: 1019 },
 
-             // =================================================
-             // ================ HOLL FAMILY LINE ===============
-             // =================================================
-             { id: 205, name: "Georg Holl", details: { geboren: "15.06.1874", gestorben: "28.02.1947", info: "1. Heirat 21.04.1904 mit Pauline geb. Betz. 2. Heirat 20.05.1918 mit Pauline geb. Vollmer." }, spouseIds: [206, 207], childrenIds: [2051, 2052, 208, 209, 2053, 210, 2054, 2055, 2056, 2057, 2058, 2059] },
-             { id: 206, name: "Pauline Betz", details: { geboren: "11.07.1881", gestorben: "12.02.1918" } },
-             { id: 207, name: "Pauline Vollmer", details: { geboren: "25.10.1885", gestorben: "28.09.1965" } },
-
-             // Children of Georg Holl (ID 205)
-             { id: 2051, name: "Pauline Holl", details: { geboren: "28.09.1904", gestorben: "21.12.1906" }, fatherId: 205, motherId: 206 },
-             { id: 2052, name: "Klara Holl", details: { geboren: "29.10.1905", gestorben: "26.08.1906" }, fatherId: 205, motherId: 206 },
-             { id: 208, name: "Hermann Holl", details: { geboren: "13.09.1906", gestorben: "01.02.1979", info: "Aus 1. Ehe. Heirat 24.06.1940 mit Anna geb. Sparrer." }, fatherId: 205, motherId: 206, spouseIds: [2081], childrenIds: [2082, 2083, 2084] },
-             { id: 209, name: "Karl Holl", details: { geboren: "03.01.1908", gestorben: "03.12.1987", info: "Aus 1. Ehe." }, fatherId: 205, motherId: 206, spouseIds: [2091], childrenIds: [2092, 2093, 2094] },
-             { id: 2053, name: "Maria Holl", details: { geboren: "22.05.1909", gestorben: "02.05.1910" }, fatherId: 205, motherId: 206 },
-             { id: 210, name: "Ernst Holl", details: { geboren: "21.06.1910", gestorben: "24.10.1974", info: "Aus 1. Ehe. Heirat 25.01.1946 mit Anna geb. Fischer." }, fatherId: 205, motherId: 206, spouseIds: [211], childrenIds: [212, 213, 200, 214, 215] },
-             { id: 2054, name: "Maria Holl", details: { geboren: "13.10.1911", gestorben: "31.12.1911" }, fatherId: 205, motherId: 206 },
-             { id: 2055, name: "Eugen Holl", details: { geboren: "02.12.1911", gestorben: "14.02.2008" }, fatherId: 205, motherId: 206 },
-             { id: 2056, name: "Klara Fischer (geb. Holl)", details: { geboren: "28.06.1914", gestorben: "02.04.1959", info: "Aus 1. Ehe." }, fatherId: 205, motherId: 206, spouseIds: [20561], childrenIds: [20562, 20563] },
-             { id: 2057, name: "Emilie Stähle (geb. Holl)", details: { geboren: "15.07.1919", gestorben: "18.08.2012", info: "Aus 2. Ehe." }, fatherId: 205, motherId: 207, spouseIds: [20571], childrenIds: [20572] },
-             { id: 2058, name: "Otto Holl", details: { geboren: "27.01.1921", gestorben: "26.01.2000", info: "Aus 2. Ehe." }, fatherId: 205, motherId: 207, spouseIds: [20581], childrenIds: [20582, 20583, 20584] },
-             { id: 2059, name: "Pauline Kleinbach (geb. Holl)", details: { geboren: "04.06.1922", info: "Aus 2. Ehe." }, fatherId: 205, motherId: 207, spouseIds: [20591], childrenIds: [20592, 20593, 20594] },
-
-             // Grandchildren of Georg Holl (ID 205)
-             { id: 2081, name: "Anna Sparrer", details: { geboren: "12.03.1921", gestorben: "30.09.1984" } },
-             { id: 2082, name: "Hermann Holl", details: { geboren: "24.10.1944", gestorben: "02.03.2000" }, fatherId: 208, motherId: 2081 },
-             { id: 2083, name: "Elfriede Brunner (geb. Holl)", details: { geboren: "03.04.1947" }, fatherId: 208, motherId: 2081 },
-             { id: 2084, name: "Anna Fischer (geb. Holl)", details: { geboren: "27.01.1950" }, fatherId: 208, motherId: 2081 },
-            
-             { id: 2091, name: "Christine Schwenk", details: { geboren: "28.06.1913", gestorben: "03.03.1996" } },
-             { id: 2092, name: "Karl Holl", details: { geboren: "15.07.1937" }, fatherId: 209, motherId: 2091 },
-             { id: 2093, name: "Christa Kirsamer (geb. Holl)", details: { geboren: "30.12.1941" }, fatherId: 209, motherId: 2091 },
-             { id: 2094, name: "Erich Holl", details: { geboren: "20.01.1943" }, fatherId: 209, motherId: 2091 },
-            
-             { id: 20561, name: "Robert Fischer", details: { geboren: "19.09.1904", gestorben: "02.11.1985" } },
-             { id: 20562, name: "Irmgard Schmid (geb. Fischer)", details: { geboren: "02.03.1944" }, fatherId: 20561, motherId: 2056 },
-             { id: 20563, name: "Gerhard Fischer", details: { geboren: "19.04.1948" }, fatherId: 20561, motherId: 2056 },
-
-             { id: 20571, name: "Alfred Stähle", details: { geboren: "02.04.1911", gestorben: "20.05.1962" } },
-             { id: 20572, name: "Ingrid Maile (geb. Stähle)", details: { geboren: "04.06.1951" }, fatherId: 20571, motherId: 2057 },
-
-             { id: 20581, name: "Maria Einsele", details: { geboren: "04.01.1922", gestorben: "07.03.1993" } },
-             { id: 20582, name: "Martin Holl", details: { geboren: "08.06.1950" }, fatherId: 2058, motherId: 20581 },
-             { id: 20583, name: "Ernst Holl", details: { geboren: "21.02.1956" }, fatherId: 2058, motherId: 20581 },
-             { id: 20584, name: "Herbert Holl", details: { geboren: "30.01.1958" }, fatherId: 2058, motherId: 20581 },
-
-             { id: 20591, name: "Hermann Kleinbach jun.", details: { geboren: "21.04.1922", gestorben: "10.12.2001" } },
-             { id: 20592, name: "Eberhard Kleinbach", details: { geboren: "31.08.1954" }, fatherId: 20591, motherId: 2059 },
-             { id: 20593, name: "Helmut Kleinbach", details: { geboren: "21.03.1956" }, fatherId: 20591, motherId: 2059 },
-             { id: 20594, name: "Wilfried Kleinbach", details: { geboren: "29.09.1963", gestorben: "13.05.2003" }, fatherId: 20591, motherId: 2059 },
-
-             // Family of Ernst Holl (ID 210)
-             { id: 211, name: "Anna Fischer", details: { geboren: "04.08.1923", gestorben: "27.11.2004" } },
-             { id: 212, name: "Ernst Holl", details: { geboren: "03.12.1946", info: "Heirat 12.05.1979 mit Daniela M. Holl (geb. Hubert)." }, fatherId: 210, motherId: 211, spouseIds: [1276] },
-             { id: 213, name: "Gerhard Holl", details: { geboren: "31.03.1949", gestorben: "11.02.2012" }, fatherId: 210, motherId: 211, spouseIds: [2131], childrenIds: [2132, 2133] },
-             { id: 2131, name: "Marianne Wiessler", details: { geboren: "05.06.1953" } },
-             { id: 2132, name: "Stephanie Englisch (geb. Holl)", details: { geboren: "27.10.1978" }, fatherId: 213, motherId: 2131 },
-             { id: 2133, name: "Christoph Holl", details: { geboren: "06.03.1987" }, fatherId: 213, motherId: 2131 },
-             { id: 200, name: "Christa Koller (geb. Holl)", details: { geboren: "07.11.1951", gestorben: "08.10.2012", info: "Heirat 08.09.1972 mit Sylvester Koller." }, fatherId: 210, motherId: 211, spouseIds: [1273], childrenIds: [201, 202] },
-             { id: 214, name: "Irene Holl", details: { geboren: "27.04.1953", gestorben: "17.02.2007" }, fatherId: 210, motherId: 211 },
-             { id: 215, name: "Martin Holl", details: { geboren: "10.11.1958", gestorben: "Juni 1959" }, fatherId: 210, motherId: 211 },
-            
-             // =================================================
-             // =============== MAIER FAMILY LINE ===============
-             // =================================================
-             { id: 305, name: "Reinhold & Rose Mögenthaler", details: { info: "Eltern von Dagmar und Rose." }, childrenIds: [310, 312] },
-             { id: 306, name: "Ernst & Berta Maier", details: { info: "Eltern von Erwin und Wolfgang." }, childrenIds: [313, 314] },
-
-             { id: 310, name: "Dagmar Maier (geb. Mögenthaler)", details: { info: "verh. mit Rolf Maier" }, fatherId: 305, spouseIds: [311], childrenIds: [300] },
-             { id: 311, name: "Rolf Maier", details: { info: "Sohn von Erwin Maier." }, fatherId: 313 },
-             { id: 312, name: "Rose Maier (geb. Mögenthaler)", details: { info: "verh. mit Wolfgang Maier" }, fatherId: 305, spouseIds: [314] },
-             { id: 313, name: "Erwin Maier", details: { info: "verh. mit Elfriede" }, fatherId: 306, childrenIds: [311] },
-             { id: 314, name: "Wolfgang Maier", details: { info: "verh. mit Rose Mögenthaler" }, fatherId: 306, spouseIds: [312] },
-            
-             { id: 300, name: "Mareike Koller (geb. Maier)", details: { geboren: "18.11.1981", info: "Heirat 03.06.2011 mit Steffen Koller." }, fatherId: 311, motherId: 310, spouseIds: [202], childrenIds: [301, 302, 303, 304] },
-         ];
+            // =================================================
+            // ============ MAIER (WOLFGANG) FAMILY LINE =======
+            // =================================================
+            { id: 2000, name: "Ernst Maier", details: {}, spouseIds: [2001], childrenIds: [2003, 2002] },
+            { id: 2001, name: "Berta Maier", details: {} },
+            { id: 2002, name: "Wolfgang Maier", details: {}, fatherId: 2000, motherId: 2001, spouseIds: [1003], childrenIds: [2005, 2006] },
+            { id: 2003, name: "Erwin Maier", details: {}, fatherId: 2000, motherId: 2001, spouseIds: [2007], childrenIds: [2008, 2009] },
+            { id: 2004, name: "Rolf Maier", details: {}, spouseIds: [1004], childrenIds: [1008, 1009, 1010, 300] },
+            { id: 2005, name: "Christof Maier", details: {}, fatherId: 2002, motherId: 1003, spouseIds: [2010], childrenIds: [2011, 2012, 2013] },
+            { id: 2006, name: "Fabian Maier", details: {}, fatherId: 2002, motherId: 1003, spouseIds: [2014], childrenIds: [2015, 2016, 2017] },
+            { id: 2007, name: "Elfriede Maier", details: {} },
+            { id: 2008, name: "Sibylle", details: { info: "geb. Maier" }, fatherId: 2003, motherId: 2007, spouseIds: [2018], childrenIds: [2019, 2020] },
+            { id: 2009, name: "Felix Maier", details: {}, fatherId: 2003, motherId: 2007, childrenIds: [2021] },
+            { id: 2010, name: "Bärbel Maier", details: {} },
+            { id: 2011, name: "Matthias Maier", details: {}, fatherId: 2005, motherId: 2010 },
+            { id: 2012, name: "Simon Maier", details: {}, fatherId: 2005, motherId: 2010 },
+            { id: 2013, name: "Katharina Maier", details: {}, fatherId: 2005, motherId: 2010 },
+            { id: 2014, name: "Silke Maier", details: {} },
+            { id: 2015, name: "Yannik Maier", details: {}, fatherId: 2006, motherId: 2014 },
+            { id: 2016, name: "Tjorben Maier", details: {}, fatherId: 2006, motherId: 2014 },
+            { id: 2017, name: "Lennart Maier", details: {}, fatherId: 2006, motherId: 2014 },
+            { id: 2018, name: "Thorsten", details: {} },
+            { id: 2019, name: "Anna", details: {}, fatherId: 2018, motherId: 2008 },
+            { id: 2020, name: "Jakob", details: {}, fatherId: 2018, motherId: 2008 },
+            { id: 2021, name: "Emil Maier", details: {}, fatherId: 2009 }
+        ];
 
         // --- D3.js Visualization Code ---
         
@@ -595,7 +538,7 @@
                 personToStammMap.set(p.id, []);
             });
 
-            const rootIds = { koller: 1, holl: 205, maier: 305 };
+            const rootIds = { koller: 1, holl: 205, moergenthaler: 1001, maier_wolfgang: 2000 };
             for (const [stammKey, rootId] of Object.entries(rootIds)) {
                 const treeData = buildTreeFromFlatData(rootId, allPeopleMap);
                 if (treeData) {
@@ -710,7 +653,7 @@
             const died = person.details.gestorben || 'Heute';
             
             return `<div class="w-full h-full p-3 flex flex-col items-center justify-center rounded-xl shadow-lg border border-slate-200 node-card">
-                        <p class="font-bold text-slate-800 text-base leading-tight text-center whitespace-normal break-words" title="${name}">${name}</p>
+                        <p class="font-bold text-slate-800 text-sm leading-tight text-center whitespace-normal break-words" title="${name}">${name}</p>
                         <p class="text-xs text-slate-500 mt-1">${born} - ${died}</p>
                     </div>`;
         }
@@ -962,7 +905,7 @@
                     } else {
                         const affiliations = personToStammMap.get(p.id) || [];
                         affiliations.forEach(stamm => {
-                            const stammLabel = stamm.charAt(0).toUpperCase() + stamm.slice(1);
+                            const stammLabel = stamm.charAt(0).toUpperCase() + stamm.slice(1).replace('_', ' ');
                             results.push({
                                 displayName: `${p.name} (*${p.details.geboren ? p.details.geboren.split('.').pop().trim() : '?'}, Stamm ${stammLabel})`,
                                 targetId: p.id,
@@ -992,7 +935,7 @@
         
         function findAndShowPerson(personId) {
             const currentView = d3.select('.view-btn.active').attr('data-view');
-            const rootIds = { koller: 1, holl: 205, maier: 305 };
+            const rootIds = { koller: 1, holl: 205, moergenthaler: 1001, maier_wolfgang: 2000 };
             const fullData = buildTreeFromFlatData(rootIds[currentView], allPeopleMap);
             if (!fullData) return;
             const fullHierarchy = d3.hierarchy(fullData, d => d.children);
@@ -1053,14 +996,14 @@
             const person = allPeopleMap.get(d.data.id);
             if (!person) return;
             const stammLinks = (personToStammMap.get(person.id) || [])
-                .map(stamm => `<span class="detail-link" data-id="${person.id}" data-stamm="${stamm}">${stamm.charAt(0).toUpperCase() + stamm.slice(1)}</span>`)
+                .map(stamm => `<span class="detail-link" data-id="${person.id}" data-stamm="${stamm}">${stamm.charAt(0).toUpperCase() + stamm.slice(1).replace('_', ' ')}</span>`)
                 .join(', ');
             let panelHTML = `<div class="p-6"><div class="flex items-center space-x-6"><img class="h-24 w-24 rounded-full object-cover ring-4 ring-sky-100" src="https://placehold.co/100x100/e0f2fe/0c4a6e?text=${person.name.charAt(0)}" alt="Platzhalterbild" onerror="this.onerror=null;this.src='https://placehold.co/100x100/e0f2fe/0c4a6e?text=Foto';"><div><h3 class="text-2xl font-bold text-slate-800">${person.name}</h3><p class="text-slate-500 font-medium">Stamm ${stammLinks || 'Unbekannt'}</p></div></div><div class="mt-6 border-t border-slate-200 pt-6"><dl class="space-y-3 text-sm">`;
             if (person.details.geboren) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Geboren</dt><dd class="text-slate-700">${person.details.geboren}</dd></div>`;
             if (person.details.gestorben) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Gestorben</dt><dd class="text-slate-700">${person.details.gestorben}</dd></div>`;
             if (person.spouseIds && person.spouseIds.length > 0) {
                 const spouses = person.spouseIds.map(id => allPeopleMap.get(id)).filter(Boolean);
-                panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Partner</dt><dd class="text-slate-700">${spouses.map(s => `<span class="detail-link" data-id="${s.id}" data-stamm="${personToStammMap.get(s.id)[0]}">${s.name}</span>`).join('<br>')}</dd></div>`;
+                panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Partner</dt><dd class="text-slate-700">${spouses.map(s => `<span class="detail-link" data-id="${s.id}" data-stamm="${(personToStammMap.get(s.id) || [])[0]}">${s.name}</span>`).join('<br>')}</dd></div>`;
             }
             if (person.details.info) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-500 flex-shrink-0">Info</dt><dd class="text-slate-700">${person.details.info}</dd></div>`;
             panelHTML += `</dl>`;
@@ -1068,11 +1011,11 @@
                 panelHTML += `<div class="mt-4 border-t border-slate-200 pt-4"><h4 class="text-sm font-medium text-slate-500 mb-2">Eltern</h4><dl class="space-y-3 text-sm">`;
                 if(person.fatherId) {
                     const father = allPeopleMap.get(person.fatherId);
-                    if (father) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-400 flex-shrink-0">Vater</dt><dd class="text-slate-700"><span class="detail-link" data-id="${father.id}" data-stamm="${personToStammMap.get(father.id)[0]}">${father.name}</span></dd></div>`;
+                    if (father) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-400 flex-shrink-0">Vater</dt><dd class="text-slate-700"><span class="detail-link" data-id="${father.id}" data-stamm="${(personToStammMap.get(father.id) || [])[0]}">${father.name}</span></dd></div>`;
                 }
                 if(person.motherId) {
                     const mother = allPeopleMap.get(person.motherId);
-                    if (mother) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-400 flex-shrink-0">Mutter</dt><dd class="text-slate-700"><span class="detail-link" data-id="${mother.id}" data-stamm="${personToStammMap.get(mother.id)[0]}">${mother.name}</span></dd></div>`;
+                    if (mother) panelHTML += `<div class="flex"><dt class="w-24 font-medium text-slate-400 flex-shrink-0">Mutter</dt><dd class="text-slate-700"><span class="detail-link" data-id="${mother.id}" data-stamm="${(personToStammMap.get(mother.id) || [])[0]}">${mother.name}</span></dd></div>`;
                 }
                 panelHTML += `</dl></div>`;
             }
@@ -1170,8 +1113,8 @@
 
         function renderTree(viewKey, customData = null, targetIdToSelect = null) {
             let data, title;
-            const rootIds = { koller: 1, holl: 205, maier: 305 };
-            const titles = { koller: "Stammbaum Familie Koller", holl: "Stammbaum Familie Holl", maier: "Stammbaum Familie Maier", ahnentafel: "Ahnentafel" };
+            const rootIds = { koller: 1, holl: 205, moergenthaler: 1001, maier_wolfgang: 2000 };
+            const titles = { koller: "Stammbaum Familie Koller", holl: "Stammbaum Familie Holl", moergenthaler: "Stammbaum Familie Mörgenthaler", maier_wolfgang: "Stammbaum Maier (Wolfgang)", ahnentafel: "Ahnentafel" };
             initializeVisualization();
             hideDetailPanel();
             if (viewKey === 'ahnentafel') {
