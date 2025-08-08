@@ -1,0 +1,43 @@
+{
+  "moergenthaler_family_tree": {
+    "count": 41,
+    "people": [
+      { "id": 1001, "name": "Reinhold Mörgenthaler", "details": {}, "spouseIds": [1002], "childrenIds": [1003, 1004, 1005, 1006, 1007] },
+      { "id": 1002, "name": "Rose Mörgenthaler", "details": {}, "spouseIds": [1001], "childrenIds": [1003, 1004, 1005, 1006, 1007] },
+      { "id": 1003, "name": "Rose Maier (geb. Mörgenthaler)", "details": {}, "fatherId": 1001, "motherId": 1002, "spouseIds": [2002], "childrenIds": [2005, 2006] },
+      { "id": 1004, "name": "Dagmar Maier (geb. Mörgenthaler)", "details": {}, "fatherId": 1001, "motherId": 1002, "spouseIds": [2004], "childrenIds": [1008, 1009, 1010, 300] },
+      { "id": 1005, "name": "Sandra Mauthe (geb. Mörgenthaler)", "details": {}, "fatherId": 1001, "motherId": 1002, "spouseIds": [1015] },
+      { "id": 1006, "name": "Norwin Mörgenthaler", "details": {}, "fatherId": 1001, "motherId": 1002, "spouseIds": [1016], "childrenIds": [1017, 1018] },
+      { "id": 1007, "name": "Heike Koch (geb. Mörgenthaler)", "details": {}, "fatherId": 1001, "motherId": 1002, "childrenIds": [1019, 1020] },
+      { "id": 1008, "name": "Melanie Zimmermann (geb. Maier)", "details": {}, "fatherId": 2004, "motherId": 1004, "spouseIds": [1021], "childrenIds": [1022, 1023, 1024, 1025] },
+      { "id": 1009, "name": "Manuela Osswald (geb. Maier)", "details": {}, "fatherId": 2004, "motherId": 1004, "spouseIds": [1026], "childrenIds": [1027, 1028, 1029, 1030] },
+      { "id": 1010, "name": "Maggy Singer (geb. Maier)", "details": {}, "fatherId": 2004, "motherId": 1004, "spouseIds": [1031], "childrenIds": [1032, 1033, 1034] },
+      { "id": 1015, "name": "Diethelm Mauthe", "details": {}, "spouseIds": [1005] },
+      { "id": 1016, "name": "Rose Mörgenthaler", "details": {}, "spouseIds": [1006], "childrenIds": [1017, 1018] },
+      { "id": 1017, "name": "Bianca Mörgenthaler", "details": {}, "fatherId": 1006, "motherId": 1016 },
+      { "id": 1018, "name": "Lutz Mörgenthaler", "details": {}, "fatherId": 1006, "motherId": 1016 },
+      { "id": 1019, "name": "Svenja Schleifenbaum (geb. Koch)", "details": {}, "motherId": 1007, "spouseIds": [1035], "childrenIds": [1036, 1037, 1038, 1039] },
+      { "id": 1020, "name": "Mario Koch", "details": {}, "motherId": 1007 },
+      { "id": 1021, "name": "Jörg Zimmermann", "details": {}, "spouseIds": [1008], "childrenIds": [1022, 1023, 1024, 1025] },
+      { "id": 1022, "name": "Marlene Zimmermann", "details": {}, "fatherId": 1021, "motherId": 1008 },
+      { "id": 1023, "name": "Viktoria Zimmermann", "details": {}, "fatherId": 1021, "motherId": 1008 },
+      { "id": 1024, "name": "Julius Zimmermann", "details": {}, "fatherId": 1021, "motherId": 1008 },
+      { "id": 1025, "name": "Benjamin Zimmermann", "details": {}, "fatherId": 1021, "motherId": 1008 },
+      { "id": 1026, "name": "Sebastian Osswald", "details": {}, "spouseIds": [1009], "childrenIds": [1027, 1028, 1029, 1030] },
+      { "id": 1027, "name": "Silas Osswald", "details": {}, "fatherId": 1026, "motherId": 1009 },
+      { "id": 1028, "name": "Lilith Osswald", "details": {}, "fatherId": 1026, "motherId": 1009 },
+      { "id": 1029, "name": "Eneas Osswald", "details": {}, "fatherId": 1026, "motherId": 1009 },
+      { "id": 1030, "name": "Salome Osswald", "details": {}, "fatherId": 1026, "motherId": 1009 },
+      { "id": 1031, "name": "Christoph Singer", "details": {}, "spouseIds": [1010], "childrenIds": [1032, 1033, 1034] },
+      { "id": 1032, "name": "Minna Singer", "details": {}, "fatherId": 1031, "motherId": 1010 },
+      { "id": 1033, "name": "Romi Singer", "details": {}, "fatherId": 1031, "motherId": 1010 },
+      { "id": 1034, "name": "Hedi Singer", "details": {}, "fatherId": 1031, "motherId": 1010 },
+      { "id": 1035, "name": "Sven Schleifenbaum", "details": {}, "spouseIds": [1019], "childrenIds": [1036, 1037, 1038, 1039] },
+      { "id": 1036, "name": "Noel Schleifenbaum", "details": {}, "fatherId": 1035, "motherId": 1019 },
+      { "id": 1037, "name": "Maileen Schleifenbaum", "details": {}, "fatherId": 1035, "motherId": 1019 },
+      { "id": 1038, "name": "Feline Schleifenbaum", "details": {}, "fatherId": 1035, "motherId": 1019 },
+      { "id": 1039, "name": "Elino Schleifenbaum", "details": {}, "fatherId": 1035, "motherId": 1019 },
+      { "id": 300, "name": "Mareike Koller (geb. Maier)", "details": {}, "fatherId": 2004, "motherId": 1004 }
+    ]
+  }
+}
