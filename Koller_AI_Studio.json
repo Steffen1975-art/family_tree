@@ -1,7 +1,7 @@
 {																									
-Stamm_Koller: {																									
-personCount: 328,																									
-persons: [																									
+"Stamm_Koller": {																									
+"personCount": 328,																									
+"persons": [																									
 { "id": 1, "firstName": "Johann", "lastName": "Koller", "birthName": "Koller", "gender": "m", "profileImage": null, "details": { "birthDate": "1807-01-01", "deathDate": "1881-09-02", "occupation": null, "notes": "Heirat 1831 mit Franziska geb. Müller." }, "address": { "street": null, "zipCode": null, "city": null, "country": null }, "contact": { "email": null, "phone": null }, "family": { "fatherId": null, "motherId": null, "originLineage": "Koller" }, "marriages": [ { "spouseId": 2, "marriageDate": "1831-01-01", "status": "verwitwet", "lineageIn": "Müller", "childrenIds": [ 3, 4, 101, 102 ] } ] },																									
 { "id": 2, "firstName": "Franziska", "lastName": "Koller", "birthName": "Müller", "gender": "w", "profileImage": null, "details": { "birthDate": "1807-01-01", "deathDate": "1892-07-18", "occupation": null, "notes": null }, "address": { "street": null, "zipCode": null, "city": null, "country": null }, "contact": { "email": null, "phone": null }, "family": { "fatherId": null, "motherId": null, "originLineage": "Müller" }, "marriages": [ { "spouseId": 1, "marriageDate": "1831-01-01", "status": "verwitwet", "lineageIn": "Koller", "childrenIds": [ 3, 4, 101, 102 ] } ] },																									
 { "id": 3, "firstName": "Xaver", "lastName": "Koller", "birthName": "Koller", "gender": "m", "profileImage": null, "details": { "birthDate": "1832-11-24", "deathDate": "1919-04-13", "occupation": null, "notes": null }, "address": { "street": null, "zipCode": null, "city": null, "country": null }, "contact": { "email": null, "phone": null }, "family": { "fatherId": 1, "motherId": 2, "originLineage": "Koller" }, "marriages": [] },																									
