@@ -1,6 +1,6 @@
 {
   "Stamm_Holl": {
-    "personCount": 156,
+    "personCount": 160,
     "persons": [
       { "id": 54087, "firstName": "Hui-Wen", "lastName": "Schmid", "birthName": "Hsu", "gender": "w", "profileImage": null, "details": { "birthDate": "1969-10-25", "deathDate": null, "occupation": null, "notes": null }, "address": { "street": null, "zipCode": null, "city": null, "country": null }, "contact": { "email": null, "phone": null }, "family": { "fatherId": null, "motherId": null, "originLineage": "Hsu" }, "marriages": [ { "spouseId": 54043, "marriageDate": null, "status": "verheiratet", "lineageIn": "Holl", "childrenIds": [] } ] },
       { "id": 2000, "firstName": "Georg", "lastName": "Holl", "birthName": "Holl", "gender": "m", "profileImage": null, "details": { "birthDate": "1874-06-15", "deathDate": "1947-02-28", "occupation": null, "notes": "1. Heirat 21.04.1904 mit Pauline Betz. 2. Heirat 20.05.1918 mit Pauline Vollmer." }, "address": { "street": null, "zipCode": null, "city": null, "country": null }, "contact": { "email": null, "phone": null }, "family": { "fatherId": null, "motherId": null, "originLineage": "Holl" }, "marriages": [ { "spouseId": 2001, "marriageDate": "1904-04-21", "status": "verwitwet", "lineageIn": "Betz", "childrenIds": [ 6000, 6001, 2003, 2004, 6002, 4001, 6003, 6004, 54000 ] }, { "spouseId": 2002, "marriageDate": "1918-05-20", "status": "verwitwet", "lineageIn": "Vollmer", "childrenIds": [ 54001, 54002, 54003 ] } ] },
