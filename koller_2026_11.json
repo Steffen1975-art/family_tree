@@ -333,4 +333,3 @@
       {"id": 100158, "firstName": "Mareike", "lastName": "Koller", "birthName": "Maier", "gender": "w", "profileImage": null, "source": null, "tribeAffiliation": ["Stamm_Koller"], "details": {"birthDate": "1981-11-18", "deathDate": null, "occupation": null, "notes": null}, "address": {"street": null, "zipCode": null, "city": null, "country": null}, "contact": {"email": "mareike.koller@gmail.com", "phone": null}, "family": {"fatherId": null, "motherId": null, "originLineage": "Maier"}, "marriages": [{"spouseId": 100039, "marriageDate": "2011-06-03", "status": "verheiratet", "lineageIn": "Koller", "childrenIds": [100040, 100041, 100042, 100043]}]}
     ]
   }
-}
