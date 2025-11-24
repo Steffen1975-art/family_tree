@@ -1,21 +1,7 @@
 {
   "Stamm_Koller": {
     "persons": [
-      {
-        "id": 100990,
-        "firstName": "Vater",
-        "lastName": "Holl",
-        "birthName": "Holl",
-        "gender": "m",
-        "profileImage": null,
-        "source": "Manuell hinzugefügt zur Verknüpfung der Geschwister",
-        "tribeAffiliation": ["Stamm_Holl"],
-        "details": { "birthDate": null, "deathDate": null, "occupation": null, "notes": "Platzhalter um Christa und Ernst als Geschwister zu verknüpfen" },
-        "address": {},
-        "contact": {},
-        "family": { "fatherId": null, "motherId": null, "originLineage": "Holl" },
-        "marriages": [{"spouseId": null, "marriageDate": null, "status": null, "lineageIn": null, "childrenIds": [100018, 100037]}]
-      },
+      {"id": 100990, "firstName": "Vater", "lastName": "Holl", "birthName": "Holl", "gender": "m", "profileImage": null, "source": "Manuell hinzugefügt zur Verknüpfung der Geschwister", "tribeAffiliation": ["Stamm_Holl"], "details": { "birthDate": null, "deathDate": null, "occupation": null, "notes": "Platzhalter um Christa und Ernst als Geschwister zu verknüpfen" }, "address": {}, "contact": {}, "family": { "fatherId": null, "motherId": null, "originLineage": "Holl" }, "marriages": [{"spouseId": null, "marriageDate": null, "status": null, "lineageIn": null, "childrenIds": [100018, 100037]}]},
       {"id": 100165, "firstName": "Johann", "lastName": "Koller", "birthName": "Koller", "gender": "m", "profileImage": null, "source": null, "tribeAffiliation": ["Stamm_Koller"], "details": {"birthDate": "1807-01-01", "deathDate": "1881-09-02", "occupation": null, "notes": "Heirat 1831 mit Franziska geb. Müller."}, "address": {"street": null, "zipCode": null, "city": null, "country": null}, "contact": {"email": null, "phone": null}, "family": {"fatherId": null, "motherId": null, "originLineage": "Koller"}, "marriages": [{"spouseId": 100166, "marriageDate": "1831-01-01", "status": "verwitwet", "lineageIn": "Müller", "childrenIds": [100167, 100168, 100180, 100181]}]},
       {"id": 100166, "firstName": "Franziska", "lastName": "Koller", "birthName": "Müller", "gender": "w", "profileImage": null, "source": null, "tribeAffiliation": ["Stamm_Koller"], "details": {"birthDate": "1807-01-01", "deathDate": "1892-07-18", "occupation": null, "notes": null}, "address": {"street": null, "zipCode": null, "city": null, "country": null}, "contact": {"email": null, "phone": null}, "family": {"fatherId": null, "motherId": null, "originLineage": "Müller"}, "marriages": [{"spouseId": 100165, "marriageDate": "1831-01-01", "status": "verwitwet", "lineageIn": "Koller", "childrenIds": [100167, 100168, 100180, 100181]}]},
       {"id": 100167, "firstName": "Xaver", "lastName": "Koller", "birthName": "Koller", "gender": "m", "profileImage": null, "source": null, "tribeAffiliation": ["Stamm_Koller"], "details": {"birthDate": "1832-11-24", "deathDate": "1919-04-13", "occupation": null, "notes": null}, "address": {"street": null, "zipCode": null, "city": null, "country": null}, "contact": {"email": null, "phone": null}, "family": {"fatherId": 100165, "motherId": 100166, "originLineage": "Koller"}, "marriages": []},
